@@ -1,0 +1,16 @@
+[build]
+  command = "npm --prefix frontend ci && npm --prefix frontend run build"
+  publish = "frontend/dist"
+
+# The API is independently hosted. Set VITE_API_BASE_URL to its origin.
+# Reserve same-origin API URLs so SPA fallback never returns HTML as API data.
+[[redirects]]
+  from = "/api/*"
+  to = "/api-not-configured.json"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
