@@ -17,3 +17,6 @@ requirement.md
 docs/
 AGENTS.md
 agents.md
+
+# Local environment templates
+.env.example
