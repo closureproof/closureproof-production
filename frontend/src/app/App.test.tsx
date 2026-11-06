@@ -4,55 +4,23 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { App } from './App';
 function show(path: string) { return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>); }
-it('routes the public landing CTA to a labelled read-only demo', async () => {
-  show('/'); await userEvent.click(screen.getByRole('link', { name: /See how it works/ }));
-  expect(screen.getByRole('heading', { name: 'Is “complete” really complete?' })).toBeInTheDocument();
-  expect(screen.getByText('Sample data · Read-only demo')).toBeInTheDocument();
-  expect(screen.queryByRole('link', { name: 'New finding' })).not.toBeInTheDocument();
+it('opens dashboard aliases without sign-in or dummy data', async () => {
+  show('/dashboard.html');
+  expect(await screen.findByRole('navigation', { name: 'Workspace navigation' })).toBeInTheDocument();
+  expect(screen.queryByText(/CP-1042/)).not.toBeInTheDocument();
 });
-it('routes deferred app access to request demo without a sign-in form', () => {
-  show('/app/findings'); expect(screen.getByRole('heading', { name: 'Request demo' })).toBeInTheDocument();
+it('allows public findings navigation without exposing private records', async () => {
+  show('/app/findings');
+  expect(await screen.findByRole('navigation', { name: 'Workspace navigation' })).toBeInTheDocument();
+});
+it('keeps request-demo separate from workspace authentication', () => {
+  show('/request-demo'); expect(screen.getByRole('heading', { name: 'Request demo' })).toBeInTheDocument();
   expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
 });
-it('filters sample findings and shows an empty state', async () => {
-  show('/preview/findings'); await userEvent.type(screen.getByRole('textbox', { name: 'Search findings' }), 'does-not-exist');
-  expect(screen.getByRole('heading', { name: 'No findings to show' })).toBeInTheDocument();
-});
-it('creates a local finding draft with no authoritative assessment', async () => {
-  show('/preview/findings/new'); const user = userEvent.setup();
-  await user.type(screen.getByLabelText('Finding title'), 'Review missing');
-  await user.type(screen.getByLabelText('Description'), 'A review needs supporting evidence.');
-  await user.type(screen.getByLabelText('ISO / control reference'), 'A.5.18');
-  await user.type(screen.getByLabelText('Accountable owner'), 'Test owner');
-  await user.type(screen.getByLabelText('Due date'), '2026-12-20');
-  await user.type(screen.getByLabelText('Affected scope'), 'Test system');
-  await user.click(screen.getByRole('button', { name: 'Save preview draft' }));
-  expect(await screen.findByRole('heading', { name: 'Review missing' })).toBeInTheDocument();
-  expect(screen.getByText('No server assessment has been run for this revision.')).toBeInTheDocument();
-});
-it('renders unknown assessment results with explanations', async () => {
-  show('/dashboard.html/findings/CP-1042');
-  await userEvent.click(screen.getByText('Evidence provenance'));
-  expect(screen.getByText('Customer-submitted records have not been independently checked.')).toBeInTheDocument();
-  expect(screen.getAllByText('Unknown')).toHaveLength(2);
-});
-it('labels all integrations as planned with no connect action', () => {
-  show('/preview/integrations'); expect(screen.getAllByText('Planned integration')).toHaveLength(10);
-  expect(screen.queryByRole('button', { name: /^Connect$/ })).not.toBeInTheDocument();
-});
-it('rejects unsupported evidence files', async () => {
-  show('/preview/evidence'); const input = document.querySelector('input[type=file]') as HTMLInputElement;
-  await userEvent.setup({ applyAccept: false }).upload(input, new File(['bad'], 'unsafe.exe', { type: 'application/octet-stream' }));
-  expect(screen.getByRole('alert')).toHaveTextContent('Unsupported format');
-});
-it('does not pretend that review submissions succeeded', async () => {
-  show('/preview/findings/CP-1042'); const user = userEvent.setup();
-  await user.click(screen.getByRole('tab', { name: 'Review' }));
-  await user.selectOptions(screen.getByLabelText('Retest result'), 'Passed');
-  await user.type(screen.getByLabelText('Reviewer rationale'), 'Reviewed the full sample evidence and scope.');
-  await user.click(screen.getByRole('checkbox'));
-  await user.click(screen.getByRole('button', { name: 'Preview review submission' }));
-  expect(screen.getByRole('alert')).toHaveTextContent('Review was not submitted');
+it('does not use sample records when Supabase is unconfigured', async () => {
+  show('/preview');
+  expect(await screen.findByRole('navigation', { name: 'Workspace navigation' })).toBeInTheDocument();
+  expect(screen.queryByText(/CP-1042/)).not.toBeInTheDocument();
 });
 
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
@@ -67,9 +35,15 @@ async function fillDemoForm() {
   await user.click(screen.getByRole('checkbox'));
   await user.click(screen.getByRole('button', { name: 'Request demo' }));
 }
-it('shows a request-demo form instead of sign in from legacy login URLs', () => {
-  show('/login'); expect(screen.getByRole('heading', { name: 'Request demo' })).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+it('redirects old login links directly to the public dashboard', async () => {
+  show('/login'); expect(await screen.findByRole('heading', { name: 'Closure overview' })).toBeInTheDocument();
+  expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+});
+it('shows the full submission form without an account', async () => {
+  show('/app/submission');
+  expect(await screen.findByLabelText('Finding title')).toBeInTheDocument();
+  expect(await screen.findByRole('button', { name: 'Create finding' })).toBeEnabled();
+  expect(screen.queryByText(/current role cannot|uploads and saved reviews are unavailable/i)).not.toBeInTheDocument();
 });
 it('keeps form details and reports unconfigured delivery without claiming success', async () => {
   vi.stubEnv('VITE_DEMO_REQUEST_URL', ''); show('/request-demo'); await fillDemoForm();

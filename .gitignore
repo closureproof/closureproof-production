@@ -20,3 +20,6 @@ agents.md
 
 # Local environment templates
 .env.example
+
+# Supabase migrations
+supabase/migrations/

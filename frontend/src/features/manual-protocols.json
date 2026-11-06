@@ -1,0 +1,1174 @@
+[
+  {
+    "code": "aws-iam",
+    "title": "AWS IAM privileged access",
+    "category": "Excessive IAM permissions",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-INF-02",
+        "label": "INF-02 · Review resources in scope (Infra → Resources)",
+        "guidance": "Every cloud resource ComplyJet discovers is reviewed and either kept In Scope or moved to Excluded with a reason.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-02"
+      },
+      {
+        "id": "iso-INF-03",
+        "label": "INF-03 · Inventory Items Have Assigned Owners",
+        "guidance": "Every in-scope inventory item (cloud resources, repositories) has an assigned owner who is responsible for it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-03"
+      },
+      {
+        "id": "iso-ACC-01",
+        "label": "ACC-01 · Password Policy Configured (AWS IAM)",
+        "guidance": "AWS IAM has a strong password policy: minimum length, complexity, expiration and reuse rules.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-01"
+      },
+      {
+        "id": "iso-ACC-02",
+        "label": "ACC-02 · Unique AWS Access Accounts",
+        "guidance": "Each AWS IAM account belongs to one individual employee; no shared or unlinked accounts.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-02"
+      },
+      {
+        "id": "iso-ACC-03",
+        "label": "ACC-03 · MFA Enabled for AWS Root Account",
+        "guidance": "The AWS root account has multi-factor authentication turned on.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-03"
+      },
+      {
+        "id": "iso-ACC-04",
+        "label": "ACC-04 · Infrastructure Console has MFA enabled (AWS)",
+        "guidance": "MFA is enabled for every AWS user who can sign in to the console.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-04"
+      },
+      {
+        "id": "iso-ACC-08",
+        "label": "ACC-08 · Service Accounts Used Instead of IAM Users",
+        "guidance": "AWS services and applications use IAM roles (temporary credentials) instead of IAM users with long-lived access keys.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-08"
+      },
+      {
+        "id": "iso-ACC-09",
+        "label": "ACC-09 · AWS Account Access Removed on Termination",
+        "guidance": "Former employees' AWS access is removed immediately when they leave.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-09"
+      },
+      {
+        "id": "iso-ACC-10",
+        "label": "ACC-10 · Access Reviews are Completed",
+        "guidance": "At least one access review has been completed within the configured period (for example quarterly or yearly): someone checks who has access to each system and removes what is not needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-10"
+      },
+      {
+        "id": "iso-DOC-12",
+        "label": "DOC-12 · Admin account activity tracking",
+        "guidance": "Evidence that any use of an administrative account can be traced back to a specific person, for example through logs showing who performed an action and when.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-12"
+      },
+      {
+        "id": "iso-POL-03",
+        "label": "POL-03 · Access Control Policy",
+        "guidance": "Limits access to information, systems, networks and facilities to authorised parties. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-03"
+      },
+      {
+        "id": "iso-ODOC-04",
+        "label": "ODOC-04 · Access request records",
+        "guidance": "Two recent examples of access being granted to an important system (AWS, GitHub, HR platform), with proof the request was approved.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-04"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "access",
+    "title": "Periodic access reviews",
+    "category": "Access governance",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-ACC-00",
+        "label": "ACC-00 · Link system accounts to people (Access → Systems)",
+        "guidance": "Every account in each connected system (AWS, GitHub, Google etc.) is linked to the employee who owns it, or marked as a service account. Needed for the 'uniquely assigned' and 'removed on termination' tests.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-00"
+      },
+      {
+        "id": "iso-ACC-02",
+        "label": "ACC-02 · Unique AWS Access Accounts",
+        "guidance": "Each AWS IAM account belongs to one individual employee; no shared or unlinked accounts.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-02"
+      },
+      {
+        "id": "iso-ACC-06",
+        "label": "ACC-06 · GitHub Access Accounts Are Uniquely Assigned",
+        "guidance": "Every GitHub account in the organisation belongs to one individual employee; no shared or unlinked accounts.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-06"
+      },
+      {
+        "id": "iso-ACC-10",
+        "label": "ACC-10 · Access Reviews are Completed",
+        "guidance": "At least one access review has been completed within the configured period (for example quarterly or yearly): someone checks who has access to each system and removes what is not needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-10"
+      },
+      {
+        "id": "iso-PEO-02",
+        "label": "PEO-02 · Keep each person's status and start date correct",
+        "guidance": "Every person has the right status (current employee, contractor, former employee, or Others/excluded) and a start date, so checks apply to the right people.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "PEO-02"
+      },
+      {
+        "id": "iso-PEO-07",
+        "label": "PEO-07 · Every employee's system accounts are linked (Access column)",
+        "guidance": "Each employee's accounts in connected systems (AWS, GitHub, Google etc.) are linked to that person, so access can be reviewed and removed when they leave.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "PEO-07"
+      },
+      {
+        "id": "iso-POL-03",
+        "label": "POL-03 · Access Control Policy",
+        "guidance": "Limits access to information, systems, networks and facilities to authorised parties. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-03"
+      },
+      {
+        "id": "iso-POL-11",
+        "label": "POL-11 · Roles, Responsibilities, and Authorities",
+        "guidance": "Defines the roles, responsibilities and authorities needed to run the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-11"
+      },
+      {
+        "id": "iso-ODOC-04",
+        "label": "ODOC-04 · Access request records",
+        "guidance": "Two recent examples of access being granted to an important system (AWS, GitHub, HR platform), with proof the request was approved.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-04"
+      },
+      {
+        "id": "iso-RSK-05",
+        "label": "RSK-05 · Assess risk scenario: Segregation of duties has not been established, resulting in conflicts of interest.",
+        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Pull request approval by a second person, branch protection for admins, role definitions, access reviews. Small teams may accept this risk with compensating controls.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RSK-05"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "leavers",
+    "title": "Joiner, mover and leaver access",
+    "category": "Access lifecycle",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-PEO-02",
+        "label": "PEO-02 · Keep each person's status and start date correct",
+        "guidance": "Every person has the right status (current employee, contractor, former employee, or Others/excluded) and a start date, so checks apply to the right people.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "PEO-02"
+      },
+      {
+        "id": "iso-PEO-07",
+        "label": "PEO-07 · Every employee's system accounts are linked (Access column)",
+        "guidance": "Each employee's accounts in connected systems (AWS, GitHub, Google etc.) are linked to that person, so access can be reviewed and removed when they leave.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "PEO-07"
+      },
+      {
+        "id": "iso-PEO-08",
+        "label": "PEO-08 · Offboard leavers the same day",
+        "guidance": "When someone leaves, their status is changed, all system access is removed and company equipment is returned.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "PEO-08"
+      },
+      {
+        "id": "iso-ACC-00",
+        "label": "ACC-00 · Link system accounts to people (Access → Systems)",
+        "guidance": "Every account in each connected system (AWS, GitHub, Google etc.) is linked to the employee who owns it, or marked as a service account. Needed for the 'uniquely assigned' and 'removed on termination' tests.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-00"
+      },
+      {
+        "id": "iso-ACC-05",
+        "label": "ACC-05 · GitHub Account Access Removed on Termination",
+        "guidance": "Former employees are removed from the GitHub organisation and its repositories.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-05"
+      },
+      {
+        "id": "iso-ACC-09",
+        "label": "ACC-09 · AWS Account Access Removed on Termination",
+        "guidance": "Former employees' AWS access is removed immediately when they leave.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-09"
+      },
+      {
+        "id": "iso-ODOC-20",
+        "label": "ODOC-20 · Employee asset return",
+        "guidance": "Evidence that company equipment (laptops, phones, access cards, security tokens) is returned when someone leaves.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-20"
+      },
+      {
+        "id": "iso-POL-03",
+        "label": "POL-03 · Access Control Policy",
+        "guidance": "Limits access to information, systems, networks and facilities to authorised parties. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-03"
+      },
+      {
+        "id": "iso-POL-19",
+        "label": "POL-19 · Human Resource Security Policy",
+        "guidance": "Makes sure employees and contractors meet security requirements, understand their responsibilities and are suitable for their roles. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-19"
+      },
+      {
+        "id": "iso-ODOC-10",
+        "label": "ODOC-10 · Employee agreement",
+        "guidance": "A signed agreement from a recent employee showing they understand their responsibilities around information security (for example a signed policy acknowledgment or contract clause).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-10"
+      },
+      {
+        "id": "iso-ODOC-29",
+        "label": "ODOC-29 · Contractor agreement",
+        "guidance": "The most recent contractor or consultant agreement, including clauses covering security, confidentiality and acceptable use.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-29"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "mfa",
+    "title": "MFA enforcement",
+    "category": "Authentication",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-ACC-03",
+        "label": "ACC-03 · MFA Enabled for AWS Root Account",
+        "guidance": "The AWS root account has multi-factor authentication turned on.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-03"
+      },
+      {
+        "id": "iso-ACC-04",
+        "label": "ACC-04 · Infrastructure Console has MFA enabled (AWS)",
+        "guidance": "MFA is enabled for every AWS user who can sign in to the console.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-04"
+      },
+      {
+        "id": "iso-ACC-07",
+        "label": "ACC-07 · Version control system has MFA enabled (GitHub)",
+        "guidance": "All GitHub accounts in the organisation have two-factor authentication.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-07"
+      },
+      {
+        "id": "iso-ACC-00",
+        "label": "ACC-00 · Link system accounts to people (Access → Systems)",
+        "guidance": "Every account in each connected system (AWS, GitHub, Google etc.) is linked to the employee who owns it, or marked as a service account. Needed for the 'uniquely assigned' and 'removed on termination' tests.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-00"
+      },
+      {
+        "id": "iso-ACC-01",
+        "label": "ACC-01 · Password Policy Configured (AWS IAM)",
+        "guidance": "AWS IAM has a strong password policy: minimum length, complexity, expiration and reuse rules.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ACC-01"
+      },
+      {
+        "id": "iso-POL-03",
+        "label": "POL-03 · Access Control Policy",
+        "guidance": "Limits access to information, systems, networks and facilities to authorised parties. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-03"
+      },
+      {
+        "id": "iso-DEV-04",
+        "label": "DEV-04 · Screen lock after 15 minutes or less",
+        "guidance": "The screen locks automatically after no more than 15 minutes of inactivity and needs a password, PIN or biometric to unlock.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DEV-04"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "patch",
+    "title": "Vulnerability and patch remediation",
+    "category": "Vulnerability management",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-VUL-01",
+        "label": "VUL-01 · Turn on Dependabot alerts for every repository",
+        "guidance": "GitHub scans each repository's dependencies and raises an alert when a package has a known vulnerability. These alerts flow into ComplyJet's Vulnerabilities page.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-01"
+      },
+      {
+        "id": "iso-VUL-02",
+        "label": "VUL-02 · Turn on Dependabot security updates (automatic fix pull requests)",
+        "guidance": "Dependabot opens pull requests that upgrade vulnerable packages, so fixes are ready to review.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-02"
+      },
+      {
+        "id": "iso-VUL-03",
+        "label": "VUL-03 · Connect vulnerability findings to ComplyJet",
+        "guidance": "ComplyJet pulls vulnerabilities from GitHub (and cloud scanners) so they are tracked against your compliance controls.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-03"
+      },
+      {
+        "id": "iso-VUL-04",
+        "label": "VUL-04 · Turn on cloud workload vulnerability scanning (AWS Inspector)",
+        "guidance": "AWS Inspector scans container images, Lambda functions and servers for known vulnerabilities. Needed if you run containers, serverless functions or servers.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-04"
+      },
+      {
+        "id": "iso-VUL-05",
+        "label": "VUL-05 · Set fix timeframes by severity",
+        "guidance": "A written rule for how quickly vulnerabilities must be fixed, based on severity. Common defaults: Critical 7 days, High 30 days, Medium 90 days, Low 180 days.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-05"
+      },
+      {
+        "id": "iso-VUL-06",
+        "label": "VUL-06 · Fix open vulnerabilities through reviewed pull requests",
+        "guidance": "Each vulnerability is fixed with a code change that is reviewed and approved by a second person before it is merged, then the alert closes.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-06"
+      },
+      {
+        "id": "iso-VUL-07",
+        "label": "VUL-07 · Review open vulnerabilities regularly",
+        "guidance": "Someone regularly reviews open vulnerabilities across GitHub, AWS Inspector and ComplyJet, so nothing is forgotten or left past its timeframe.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-07"
+      },
+      {
+        "id": "iso-VUL-08",
+        "label": "VUL-08 · Archive unused or test repositories",
+        "guidance": "Old, unused or test repositories are archived so they don't create vulnerability noise or hidden risk.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VUL-08"
+      },
+      {
+        "id": "iso-DEV-03",
+        "label": "DEV-03 · Anti-virus turned on and up to date",
+        "guidance": "Anti-malware protection is active and updating (Microsoft Defender on Windows; built-in XProtect on macOS, or a company anti-virus tool).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DEV-03"
+      },
+      {
+        "id": "iso-DEV-05",
+        "label": "DEV-05 · Operating system kept up to date",
+        "guidance": "Devices run a supported operating system version with automatic updates on, so security patches are applied.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DEV-05"
+      },
+      {
+        "id": "iso-DOC-17",
+        "label": "DOC-17 · Penetration test report",
+        "guidance": "The most recent penetration test report. Optional for SOC 2 but strengthens the report; generally expected for ISO 27001 (can be delayed short term by formally accepting the risk).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-17"
+      },
+      {
+        "id": "iso-DOC-18",
+        "label": "DOC-18 · Penetration test remediation",
+        "guidance": "Evidence that issues found in the most recent penetration test have been fixed. Only applies once a pen test has been done.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-18"
+      },
+      {
+        "id": "iso-RSK-08",
+        "label": "RSK-08 · Assess risk scenario: Vulnerabilities and root causes leading to breaches and outages are not addressed and remediated.",
+        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Dependabot and cloud vulnerability scanning, fix timeframes by severity, incident root cause analysis, nonconformity tracker.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RSK-08"
+      },
+      {
+        "id": "iso-POL-22",
+        "label": "POL-22 · Operations Security Policy",
+        "guidance": "Ensures the correct and secure operation of information processing systems and facilities. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-22"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "backup",
+    "title": "Backup restoration testing",
+    "category": "Recovery",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-DOC-01",
+        "label": "DOC-01 · Backup and system redundancy",
+        "guidance": "Evidence that systems and backups have redundancy built in, for example spread across multiple availability zones or regions.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-01"
+      },
+      {
+        "id": "iso-DOC-14",
+        "label": "DOC-14 · Data restore test",
+        "guidance": "Evidence that restoring data from backups is tested periodically, and that the tests succeed. ComplyJet provides a template.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-14"
+      },
+      {
+        "id": "iso-DOC-10",
+        "label": "DOC-10 · Autoscaling enabled",
+        "guidance": "Evidence that autoscaling is enabled for infrastructure where it makes sense, or a documented, approved decision not to use it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-10"
+      },
+      {
+        "id": "iso-DOC-11",
+        "label": "DOC-11 · Capacity increase request",
+        "guidance": "An example of a recent ticket where capacity was manually increased for an infrastructure resource (database, server, load balancer, service quota).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-11"
+      },
+      {
+        "id": "iso-POL-17",
+        "label": "POL-17 · Business Continuity and Disaster Recovery Plan",
+        "guidance": "Prepares the company to keep operating and recover during extended outages or disasters. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-17"
+      },
+      {
+        "id": "iso-POL-22",
+        "label": "POL-22 · Operations Security Policy",
+        "guidance": "Ensures the correct and secure operation of information processing systems and facilities. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-22"
+      },
+      {
+        "id": "iso-RSK-06",
+        "label": "RSK-06 · Assess risk scenario: Systems are unavailable due to unforeseen capacity constraints.",
+        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Autoscaling, capacity monitoring and alerts, documented capacity increase requests, status page.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RSK-06"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "supplier",
+    "title": "Supplier security review",
+    "category": "Supplier assurance",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-VEN-01",
+        "label": "VEN-01 · Build the vendor inventory",
+        "guidance": "Every third-party vendor the company uses is listed, including cloud hosting, code hosting, identity/email, AI model providers, email delivery, payroll/HR, CRM, analytics and the compliance tool.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VEN-01"
+      },
+      {
+        "id": "iso-VEN-02",
+        "label": "VEN-02 · Give each vendor a risk level",
+        "guidance": "Each vendor is rated Low, Medium or High risk based on the data it can access and how critical it is to the service.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VEN-02"
+      },
+      {
+        "id": "iso-VEN-03",
+        "label": "VEN-03 · Assign a security owner to each vendor",
+        "guidance": "Each vendor has a named security owner responsible for its review and relationship.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VEN-03"
+      },
+      {
+        "id": "iso-VEN-04",
+        "label": "VEN-04 · Complete a security review for every vendor",
+        "guidance": "Each vendor goes through ComplyJet's three-step review: gather the vendor's security documents, summarise the findings, and record a decision.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VEN-04"
+      },
+      {
+        "id": "iso-VEN-05",
+        "label": "VEN-05 · Sign data processing agreements with vendors that handle personal data",
+        "guidance": "Vendors that process personal data on the company's behalf have a signed DPA (often accepted through the vendor's terms), and they appear on the company's sub-processor list.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VEN-05"
+      },
+      {
+        "id": "iso-VEN-06",
+        "label": "VEN-06 · Re-review vendors on schedule",
+        "guidance": "Vendors are reviewed again at least yearly, and when a new SOC 2 report is released, so no vendor is In Progress or Never Reviewed for long.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VEN-06"
+      },
+      {
+        "id": "iso-VEN-07",
+        "label": "VEN-07 · Offboard vendors that are no longer used",
+        "guidance": "When a vendor is no longer needed, its access and integrations are removed, company data is deleted or returned, and it is removed from the vendor list and sub-processor list.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "VEN-07"
+      },
+      {
+        "id": "iso-POL-13",
+        "label": "POL-13 · Third-Party Management Policy",
+        "guidance": "Protects company data and assets shared with, accessed by or managed by suppliers and other external parties. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-13"
+      },
+      {
+        "id": "iso-RDOC-01",
+        "label": "RDOC-01 · External non-disclosure agreement template",
+        "guidance": "The NDA template used when bringing on third-party vendors or partners.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RDOC-01"
+      },
+      {
+        "id": "iso-RDOC-04",
+        "label": "RDOC-04 · Master service agreement template",
+        "guidance": "The master service agreement (MSA) template used with customers, setting out services, confidentiality, data protection and security commitments.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RDOC-04"
+      },
+      {
+        "id": "iso-RDOC-05",
+        "label": "RDOC-05 · Outsourced development contract",
+        "guidance": "Evidence that development work outsourced to a third party is overseen and reviewed, for example a contract with clear security requirements and code ownership terms.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RDOC-05"
+      },
+      {
+        "id": "iso-RDOC-06",
+        "label": "RDOC-06 · Supplier/vendor agreements",
+        "guidance": "A recent agreement with one of the key vendors, such as the cloud provider, database provider or monitoring/infrastructure tool, showing security terms are in place.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RDOC-06"
+      },
+      {
+        "id": "iso-RDOC-07",
+        "label": "RDOC-07 · Cloud provider agreement",
+        "guidance": "The most recent signed service agreement with the cloud provider (for example AWS, Azure, GCP).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RDOC-07"
+      },
+      {
+        "id": "iso-RDOC-08",
+        "label": "RDOC-08 · Infrastructure provider ISO certification",
+        "guidance": "The infrastructure provider's ISO 27001 certificate (for example AWS, Azure, GCP).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RDOC-08"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "logging",
+    "title": "Security logging and monitoring",
+    "category": "Monitoring",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-INF-08",
+        "label": "INF-08 · AWS CloudTrail Logging Enabled",
+        "guidance": "AWS CloudTrail is enabled across all enabled regions, recording who did what in the AWS account and when.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-08"
+      },
+      {
+        "id": "iso-INF-09",
+        "label": "INF-09 · AWS CloudTrail File Integrity Validation Enabled",
+        "guidance": "Log file integrity validation is enabled for CloudTrail trails, so tampering with log files can be detected.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-09"
+      },
+      {
+        "id": "iso-INF-10",
+        "label": "INF-10 · AWS GuardDuty Enabled",
+        "guidance": "AWS GuardDuty (intrusion detection) is enabled in all specified regions to detect threats such as compromised credentials or unusual activity.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-10"
+      },
+      {
+        "id": "iso-INF-11",
+        "label": "INF-11 · AWS GuardDuty Notifications Configured",
+        "guidance": "GuardDuty findings send notifications (for example email) so the team is alerted to suspicious activity straight away.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-11"
+      },
+      {
+        "id": "iso-DOC-12",
+        "label": "DOC-12 · Admin account activity tracking",
+        "guidance": "Evidence that any use of an administrative account can be traced back to a specific person, for example through logs showing who performed an action and when.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-12"
+      },
+      {
+        "id": "iso-DOC-19",
+        "label": "DOC-19 · Intrusion detection system setup",
+        "guidance": "Screenshots or configuration showing an intrusion detection system (IDS) monitors network traffic for unusual activity. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11); only needed for extra evidence or unconnected infrastructure.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-19"
+      },
+      {
+        "id": "iso-DOC-24",
+        "label": "DOC-24 · Intrusion detection system alerts",
+        "guidance": "Evidence that the intrusion detection/prevention system (IDS/IPS) detects and alerts on suspicious activity, such as repeated failed logins or unusual traffic. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-24"
+      },
+      {
+        "id": "iso-POL-22",
+        "label": "POL-22 · Operations Security Policy",
+        "guidance": "Ensures the correct and secure operation of information processing systems and facilities. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-22"
+      },
+      {
+        "id": "iso-POL-18",
+        "label": "POL-18 · Incident Response Plan",
+        "guidance": "How security incidents and events are reported, handled and learned from. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-18"
+      },
+      {
+        "id": "iso-RSK-10",
+        "label": "RSK-10 · Assess risk scenario: Intrusions, breaches, and anomalous events cannot be investigated.",
+        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Audit logging (for example CloudTrail with integrity validation), intrusion detection with alerts (for example GuardDuty), log retention, incident response plan.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RSK-10"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "changes",
+    "title": "Change management and approval",
+    "category": "Change control",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-COD-01",
+        "label": "COD-01 · Version Control System Linked",
+        "guidance": "At least one version control system (GitHub, GitLab, Bitbucket etc.) is connected to ComplyJet for secure code and change monitoring.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "COD-01"
+      },
+      {
+        "id": "iso-COD-02",
+        "label": "COD-02 · GitHub Repositories are Set to Private",
+        "guidance": "Code repositories are private, so source code is not exposed to unauthorised people.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "COD-02"
+      },
+      {
+        "id": "iso-COD-03",
+        "label": "COD-03 · GitHub Code Review Requirement is Enforced",
+        "guidance": "Repositories require at least one approved pull request review before changes can be merged into the main branch.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "COD-03"
+      },
+      {
+        "id": "iso-COD-04",
+        "label": "COD-04 · Pull Request Author is Not the Sole Reviewer",
+        "guidance": "Every pull request has at least one reviewer who is not the author, so nobody can approve their own changes.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "COD-04"
+      },
+      {
+        "id": "iso-COD-05",
+        "label": "COD-05 · GitHub Branch Protection Rules are Enforced for Admins",
+        "guidance": "Branch protection rules also apply to administrators, so admins cannot bypass code review and other controls.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "COD-05"
+      },
+      {
+        "id": "iso-DOC-02",
+        "label": "DOC-02 · QA process",
+        "guidance": "Documentation of the QA process: how code is tested before it is released to production. ComplyJet provides a template.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-02"
+      },
+      {
+        "id": "iso-DOC-05",
+        "label": "DOC-05 · CI/CD pipeline in use",
+        "guidance": "A screenshot from the CI/CD dashboard (GitHub Actions, GitLab, Jenkins, AWS CodeBuild etc.) showing a recent, successful production deployment.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-05"
+      },
+      {
+        "id": "iso-DOC-13",
+        "label": "DOC-13 · QA and acceptance testing",
+        "guidance": "An example showing a recent change was tested and reviewed before it went live: it works, performs acceptably and doesn't introduce security issues.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-13"
+      },
+      {
+        "id": "iso-DOC-15",
+        "label": "DOC-15 · Project-specific risk assessment",
+        "guidance": "Before building a new feature or service, show the security risks were thought through: not just whether it works, but what could go wrong from a security standpoint.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-15"
+      },
+      {
+        "id": "iso-DOC-22",
+        "label": "DOC-22 · Production data not used for dev or test",
+        "guidance": "Evidence that real production data isn't used in development or test environments, for example a policy prohibiting it, or tooling that masks or anonymises data before use outside production.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-22"
+      },
+      {
+        "id": "iso-DOC-23",
+        "label": "DOC-23 · Engineering operating procedures",
+        "guidance": "A screenshot of the engineering wiki's table of contents (Confluence, Notion) or documentation covering key engineering procedures, such as submitting a pull request, setting up infrastructure and following coding standards.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-23"
+      },
+      {
+        "id": "iso-POL-16",
+        "label": "POL-16 · Secure Development Policy",
+        "guidance": "Makes sure security is designed and built into the development lifecycle of applications and systems. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-16"
+      },
+      {
+        "id": "iso-ODOC-11",
+        "label": "ODOC-11 · Secure engineering principles",
+        "guidance": "A short document outlining the security principles the engineering team follows when building things.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-11"
+      },
+      {
+        "id": "iso-ODOC-28",
+        "label": "ODOC-28 · ISMS change planning",
+        "guidance": "Evidence that significant changes to the ISMS (new procedures, organisational changes affecting security, anything that changes the risk profile) are planned before they happen.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-28"
+      },
+      {
+        "id": "iso-RSK-02",
+        "label": "RSK-02 · Assess risk scenario: Newly developed or acquired systems do not adhere to the organisation's security requirements.",
+        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Secure Development Policy, project-specific risk assessment, code review and branch protection, vendor reviews for acquired systems.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RSK-02"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  },
+  {
+    "code": "incidents",
+    "title": "Incident response and follow-up",
+    "category": "Incident response",
+    "version": "1.0-iso27001",
+    "status": "ISO 27001 workbook checklist",
+    "framework": "ISO 27001",
+    "source": {
+      "filename": "Compliance_Verification_Checklist_SOC2_ISO27001_ISO27701.pdf",
+      "sha256": "e9de5c634724ad21f6ad47796c5a6bd7b7912bd73fabb93580b971fb45a978ce"
+    },
+    "checks": [
+      {
+        "id": "iso-POL-18",
+        "label": "POL-18 · Incident Response Plan",
+        "guidance": "How security incidents and events are reported, handled and learned from. Employees must accept it.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-18"
+      },
+      {
+        "id": "iso-POL-27",
+        "label": "POL-27 · Information Security Communication Plan",
+        "guidance": "What, when and how ISMS information is communicated internally and externally. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-27"
+      },
+      {
+        "id": "iso-ODOC-16",
+        "label": "ODOC-16 · Incident response plan test",
+        "guidance": "Evidence the incident response plan is tested regularly, for example a tabletop exercise or simulated incident drill, and what was learned.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-16"
+      },
+      {
+        "id": "iso-ODOC-32",
+        "label": "ODOC-32 · Incident report and root cause analysis",
+        "guidance": "A completed incident report showing how a security incident was investigated and resolved, including the root cause and corrective actions.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-32"
+      },
+      {
+        "id": "iso-DOC-19",
+        "label": "DOC-19 · Intrusion detection system setup",
+        "guidance": "Screenshots or configuration showing an intrusion detection system (IDS) monitors network traffic for unusual activity. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11); only needed for extra evidence or unconnected infrastructure.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-19"
+      },
+      {
+        "id": "iso-DOC-24",
+        "label": "DOC-24 · Intrusion detection system alerts",
+        "guidance": "Evidence that the intrusion detection/prevention system (IDS/IPS) detects and alerts on suspicious activity, such as repeated failed logins or unusual traffic. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11).",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "DOC-24"
+      },
+      {
+        "id": "iso-INF-10",
+        "label": "INF-10 · AWS GuardDuty Enabled",
+        "guidance": "AWS GuardDuty (intrusion detection) is enabled in all specified regions to detect threats such as compromised credentials or unusual activity.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-10"
+      },
+      {
+        "id": "iso-INF-11",
+        "label": "INF-11 · AWS GuardDuty Notifications Configured",
+        "guidance": "GuardDuty findings send notifications (for example email) so the team is alerted to suspicious activity straight away.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "INF-11"
+      },
+      {
+        "id": "iso-RSK-10",
+        "label": "RSK-10 · Assess risk scenario: Intrusions, breaches, and anomalous events cannot be investigated.",
+        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Audit logging (for example CloudTrail with integrity validation), intrusion detection with alerts (for example GuardDuty), log retention, incident response plan.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "RSK-10"
+      },
+      {
+        "id": "iso-POL-05",
+        "label": "POL-05 · Procedure for Corrective Action and Continual Improvement",
+        "guidance": "Process for identifying, documenting, analysing and fixing nonconformities, and improving the ISMS. Internal document: no employee acceptance needed.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "POL-05"
+      },
+      {
+        "id": "iso-ODOC-33",
+        "label": "ODOC-33 · Nonconformity tracker",
+        "guidance": "A copy of the nonconformity tracker: the sheet used to log issues found in the ISMS and follow through on fixing them.",
+        "mandatory": false,
+        "evaluationKind": "reviewer_assessment",
+        "sourceTaskId": "ODOC-33"
+      }
+    ]
+  }
+]

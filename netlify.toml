@@ -2,7 +2,7 @@
   command = "npm --prefix frontend ci && npm --prefix frontend run build"
   publish = "frontend/dist"
 
-# The API is independently hosted. Set VITE_API_BASE_URL to its origin.
+# The frontend uses Supabase Auth, Postgres RPC/RLS and private Storage directly.
 # Reserve same-origin API URLs so SPA fallback never returns HTML as API data.
 [[redirects]]
   from = "/api/*"

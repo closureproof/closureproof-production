@@ -1,4 +1,4 @@
-import type { ReactNode, ButtonHTMLAttributes } from 'react';
+import { cloneElement, isValidElement, useId, type ReactNode, type ReactElement, type ButtonHTMLAttributes } from 'react';
 import { Link } from 'react-router';
 import { ArrowUpRight, AlertCircle, Inbox, LoaderCircle } from 'lucide-react';
 
@@ -44,4 +44,8 @@ export function Empty({ title = 'Nothing here yet', description, action }: { tit
 }
 export function Loading() { return <div role="status" className="flex items-center gap-3 p-10 font-mono text-xs text-muted"><LoaderCircle className="animate-spin" size={18} />Loading workspace…</div>; }
 export function ArrowLink({ to, children }: { to: string; children: ReactNode }) { return <Link to={to} className="inline-flex items-center gap-2 text-xs font-medium text-accent hover:underline">{children}<ArrowUpRight size={16} /></Link>; }
-export function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="grid gap-2 text-sm font-medium">{label}{children}</label>; }
+export function Field({ label, children }: { label: string; children: ReactNode }) {
+  const labelId = useId();
+  const control = isValidElement(children) ? cloneElement(children as ReactElement<{ 'aria-labelledby'?: string }>, { 'aria-labelledby': labelId }) : children;
+  return <label className="grid gap-2 text-sm font-medium"><span id={labelId}>{label}</span>{control}</label>;
+}

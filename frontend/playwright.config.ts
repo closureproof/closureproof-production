@@ -1,10 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
-  use: { baseURL: 'http://127.0.0.1:3005', trace: 'retain-on-failure' },
+  use: { baseURL: 'http://127.0.0.1:3006', trace: 'retain-on-failure' },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], channel: 'chrome' } },
     { name: 'mobile', use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium', channel: 'chrome' } },
   ],
-  webServer: { command: 'npm run dev', url: 'http://127.0.0.1:3005', reuseExistingServer: true },
+  workers: 1,
+  webServer: [
+    { command: 'node scripts/supabase-test-server.mjs', url: 'http://127.0.0.1:54330/health', reuseExistingServer: false },
+    { command: 'npx vite --host 127.0.0.1 --port 3006 --strictPort', env: { VITE_SUPABASE_URL: 'http://127.0.0.1:54330', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' }, url: 'http://127.0.0.1:3006', reuseExistingServer: false },
+  ],
 });
