@@ -26,7 +26,10 @@ test('Supabase contract: submission populates original dashboard; public reviewe
   await expect(page.getByRole('row').filter({ hasText: title })).toContainText('Awaiting review');
   await expect(page.getByText(/CP-1042/)).toHaveCount(0);
   await page.goto(findingUrl);
-  await page.getByLabel('Evidence file', { exact: true }).setInputFiles({ name: 'identity-register.json', mimeType: 'application/json', buffer: Buffer.from('{"covered":["alice","bob","charlie","delta"]}') });
+  const fileChooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Browse files', exact: true }).click();
+  await (await fileChooser).setFiles({ name: 'identity-register.json', mimeType: 'application/json', buffer: Buffer.from('{"covered":["alice","bob","charlie","delta"]}') });
+  await expect(page.getByText(/identity-register.json · 1 KB/, { exact: false })).toBeVisible();
   await page.getByLabel('Evidence type', { exact: true }).fill('Identity register export');
   await page.getByLabel('Source system', { exact: true }).fill('Identity service');
   await page.getByLabel('Evidence description', { exact: true }).fill('Export covers four of the five identities for review.');
@@ -69,7 +72,8 @@ test('Supabase contract: submission populates original dashboard; public reviewe
   const judgement = review.locator('fieldset[id^="judgement-"]');
   for (const field of await judgement.locator('textarea').all()) await field.fill('Inspected by the reviewer; missing records and unresolved coverage prevent closure.');
   await review.getByLabel('Exception register: reference, owner, status and evidence', { exact: true }).fill('EX-01: Echo absent from register; owner IT Operations; open; no resolution evidence supplied.');
-  await review.getByLabel('ACC-10 · Access Reviews are Completed: result', { exact: true }).selectOption('fail');
+  await review.getByLabel('ACC-10 · Access Reviews are Completed: applicability', { exact: true }).selectOption('yes');
+  await review.getByLabel('ACC-10 · Access Reviews are Completed: implementation status', { exact: true }).selectOption('partially_implemented');
   await review.getByLabel('ACC-10 · Access Reviews are Completed: source location', { exact: true }).fill('JSON $.covered: echo is absent');
   await review.getByRole('group', { name: 'ACC-10 · Access Reviews are Completed', exact: true }).getByRole('checkbox').check();
   await review.getByLabel('Reviewer recommendation (manually selected)', { exact: true }).selectOption('Closure ready');
@@ -84,10 +88,13 @@ test('Supabase contract: submission populates original dashboard; public reviewe
   await page.reload();
   await expect(page.getByLabel('Exception register: reference, owner, status and evidence', { exact: true })).toHaveValue('EX-01: Echo absent from register; owner IT Operations; open; no resolution evidence supplied.');
   await expect(page.getByLabel('Reviewer', { exact: true })).toHaveValue('Reviewer Jane');
+  await expect(review.getByLabel('ACC-10 · Access Reviews are Completed: implementation status', { exact: true })).toHaveValue('partially_implemented');
+  await expect(review.getByLabel('ACC-10 · Access Reviews are Completed: applicability', { exact: true })).toHaveValue('yes');
   await page.goto(findingUrl);
   await page.getByRole('tab', { name: 'Review history', exact: true }).click();
   await page.getByText(/Reviewer Jane · published/).click();
   await expect(page.getByText('EX-01: Echo absent from register; owner IT Operations; open; no resolution evidence supplied.', { exact: false })).toBeVisible();
+  await expect(page.getByText('ACC-10 · Access Reviews are Completed: Partially implemented', { exact: true })).toBeVisible();
   await page.goto('/preview');
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole('row').filter({ hasText: title })).toContainText('Not closure ready');
