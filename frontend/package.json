@@ -10,11 +10,13 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
-    "test:db": "node scripts/test-supabase-sql.mjs && node scripts/test-supabase-legacy.mjs && node scripts/test-public-pilot.mjs && node scripts/test-iso27001.mjs",
+    "test:db": "node scripts/test-supabase-sql.mjs && node scripts/test-supabase-legacy.mjs && node scripts/test-public-pilot.mjs && node scripts/test-iso27001.mjs && node scripts/test-review-workflow.mjs && node scripts/test-control-scopes.mjs && node scripts/test-simplified-judgement.mjs && node scripts/test-conditional-judgement.mjs",
     "check:supabase": "node scripts/check-supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
+    "fflate": "^0.8.3",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

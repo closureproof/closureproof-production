@@ -40,3 +40,17 @@ export function validateSoaChecks(checks: SoaCheck[], publish: boolean): string 
   if (publish && checks.some(check => check.implementation_status === 'implemented' && check.applicability !== 'yes')) return 'Confirm Yes for applicability on each item marked Implemented.';
   return '';
 }
+
+// One reviewer-entered explanation can cover untouched checks without changing
+// their applicability or implementation status.
+export function prepareCompletionChecks<T extends SoaCheck & { check_id: string; reason: string; reason_source?: string }>(checks: T[], sharedReason: string): { checks: T[]; error: string } {
+  const reason = sharedReason.trim();
+  const missing = checks.find(check => !check.reason.trim() && check.implementation_status === 'not_assessed');
+  if (missing && reason.length < 10) return { checks, error: 'Add a shared explanation for checks left Not assessed (at least 10 characters), or explain them individually. You do not need to mark them Not applicable.' };
+  const prepared = checks.map(check => check.implementation_status === 'not_assessed' && !check.reason.trim()
+    ? { ...check, reason, reason_source: 'shared_unassessed_note' }
+    : check);
+  const unexplained = prepared.find(check => check.reason.trim().length < 10);
+  if (unexplained) return { checks, error: `Explain checklist item ${unexplained.check_id} (at least 10 characters). Not applicable is a separate decision and also needs a reason.` };
+  return { checks: prepared, error: '' };
+}

@@ -5,7 +5,7 @@ import { OverviewPage } from './WorkspacePages';
 import type { ManualFinding } from '../lib/manual-api';
 const { workspace } = vi.hoisted(() => ({ workspace: { manualFindings: [] as ManualFinding[], events: [], loading: false, error: '', role: 'admin' } }));
 vi.mock('../app/WorkspaceProvider', () => ({ useWorkspace: () => workspace }));
-const finding = (readiness: ManualFinding['readiness'] = null) => ({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', title: 'Actual submitted finding', owner: 'Control owner', severity: 'High', revision: 1, readiness, protocol: { title: 'Access review' } } as ManualFinding);
+const finding = (readiness: ManualFinding['readiness'] = null) => ({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', title: 'Actual submitted finding', owner: 'Control owner', severity: 'High', lifecycle: 'evidence_submitted', cycleNumber: 1, revision: 1, readiness, protocol: { title: 'Access review' } } as ManualFinding);
 beforeEach(() => { workspace.manualFindings = []; workspace.error = ''; workspace.loading = false; });
 function show() { return render(<MemoryRouter><OverviewPage /></MemoryRouter>); }
 it('retains the original dashboard cards and table while showing a real unreviewed finding', () => {

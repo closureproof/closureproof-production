@@ -1,0 +1,1242 @@
+{
+  "version": "1.0-control-scope",
+  "source": "ISO_27001_2022_Statement_of_Applicability_Template.xlsx",
+  "source_sha256": "1d70e50106b958372d37e07a17dde2ccf6fbc85808902c9f0c8242ef0543e030",
+  "mapping_status": "Configured review guidance; finding scope requires reviewer confirmation. Not a certification coverage claim.",
+  "core_modules": [
+    "scope",
+    "cause",
+    "exceptions",
+    "conclusion"
+  ],
+  "conditional_modules": [
+    "population",
+    "operation",
+    "retest"
+  ],
+  "controls": [
+    {
+      "id": "A.5.1",
+      "title": "Policies for information security",
+      "theme": "Organisational",
+      "summary": "Establish, approve, communicate and review information security policies.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.2",
+      "title": "Information security roles and responsibilities",
+      "theme": "Organisational",
+      "summary": "Define and allocate information security roles and responsibilities.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.3",
+      "title": "Segregation of duties",
+      "theme": "Organisational",
+      "summary": "Separate conflicting duties and areas of responsibility.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.4",
+      "title": "Management responsibilities",
+      "theme": "Organisational",
+      "summary": "Require management to ensure personnel apply information security in line with policy.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.5",
+      "title": "Contact with authorities",
+      "theme": "Organisational",
+      "summary": "Maintain appropriate contacts with relevant authorities.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.6",
+      "title": "Contact with special interest groups",
+      "theme": "Organisational",
+      "summary": "Maintain appropriate contacts with security forums and professional associations.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.7",
+      "title": "Threat intelligence",
+      "theme": "Organisational",
+      "summary": "Collect and analyse information about information security threats.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.8",
+      "title": "Information security in project management",
+      "theme": "Organisational",
+      "summary": "Integrate information security into project management.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.9",
+      "title": "Inventory of information and other associated assets",
+      "theme": "Organisational",
+      "summary": "Develop and maintain an inventory of information and associated assets, including ownership.",
+      "categories": [
+        "aws-iam"
+      ],
+      "task_ids": [
+        "INF-02",
+        "INF-03",
+        "INF-04"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.10",
+      "title": "Acceptable use of information and other associated assets",
+      "theme": "Organisational",
+      "summary": "Define and implement rules for acceptable use and handling of information and assets.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.11",
+      "title": "Return of assets",
+      "theme": "Organisational",
+      "summary": "Ensure personnel and other relevant parties return organisational assets when employment or agreements change or end.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.12",
+      "title": "Classification of information",
+      "theme": "Organisational",
+      "summary": "Classify information according to its security needs.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.13",
+      "title": "Labelling of information",
+      "theme": "Organisational",
+      "summary": "Develop and implement information-labelling procedures.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.14",
+      "title": "Information transfer",
+      "theme": "Organisational",
+      "summary": "Apply rules and procedures for secure information transfer.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.15",
+      "title": "Access control",
+      "theme": "Organisational",
+      "summary": "Establish rules to control physical and logical access to information and assets.",
+      "categories": [
+        "access",
+        "aws-iam"
+      ],
+      "task_ids": [
+        "POL-03",
+        "ODOC-04"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.16",
+      "title": "Identity management",
+      "theme": "Organisational",
+      "summary": "Manage the full identity lifecycle.",
+      "categories": [
+        "access",
+        "leavers",
+        "aws-iam"
+      ],
+      "task_ids": [
+        "ACC-00",
+        "ACC-02",
+        "ACC-06",
+        "PEO-07"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.17",
+      "title": "Authentication information",
+      "theme": "Organisational",
+      "summary": "Control allocation and management of authentication information.",
+      "categories": [
+        "aws-iam",
+        "mfa"
+      ],
+      "task_ids": [
+        "ACC-01",
+        "ACC-08"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.18",
+      "title": "Access rights",
+      "theme": "Organisational",
+      "summary": "Provision, review, modify and remove access rights in accordance with policy.",
+      "categories": [
+        "access",
+        "leavers",
+        "aws-iam"
+      ],
+      "task_ids": [
+        "ACC-10",
+        "ODOC-04",
+        "ACC-05",
+        "ACC-09",
+        "PEO-08"
+      ],
+      "modules": [
+        "population",
+        "operation"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.19",
+      "title": "Information security in supplier relationships",
+      "theme": "Organisational",
+      "summary": "Manage information security risks associated with suppliers.",
+      "categories": [
+        "supplier"
+      ],
+      "task_ids": [
+        "VEN-01",
+        "VEN-02",
+        "VEN-03",
+        "VEN-04"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.20",
+      "title": "Addressing information security within supplier agreements",
+      "theme": "Organisational",
+      "summary": "Establish relevant information security requirements in supplier agreements.",
+      "categories": [
+        "supplier"
+      ],
+      "task_ids": [
+        "VEN-05",
+        "RDOC-06",
+        "RDOC-07",
+        "ODOC-29"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.21",
+      "title": "Managing information security in the ICT supply chain",
+      "theme": "Organisational",
+      "summary": "Manage information security risks in the ICT products and services supply chain.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.22",
+      "title": "Monitoring, review and change management of supplier services",
+      "theme": "Organisational",
+      "summary": "Monitor, review and manage changes to supplier security practices and service delivery.",
+      "categories": [
+        "supplier"
+      ],
+      "task_ids": [
+        "VEN-04",
+        "VEN-06",
+        "VEN-07",
+        "RDOC-08"
+      ],
+      "modules": [
+        "population",
+        "operation"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.23",
+      "title": "Information security for use of cloud services",
+      "theme": "Organisational",
+      "summary": "Define processes for acquisition, use, management and exit from cloud services.",
+      "categories": [
+        "supplier"
+      ],
+      "task_ids": [
+        "RDOC-07",
+        "RDOC-08"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.24",
+      "title": "Information security incident management planning and preparation",
+      "theme": "Organisational",
+      "summary": "Plan and prepare for information security incident management.",
+      "categories": [
+        "incidents"
+      ],
+      "task_ids": [
+        "POL-18",
+        "ODOC-16"
+      ],
+      "modules": [
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.25",
+      "title": "Assessment and decision on information security events",
+      "theme": "Organisational",
+      "summary": "Assess events and decide whether they are information security incidents.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.26",
+      "title": "Response to information security incidents",
+      "theme": "Organisational",
+      "summary": "Respond to information security incidents in accordance with documented procedures.",
+      "categories": [
+        "incidents"
+      ],
+      "task_ids": [
+        "ODOC-32"
+      ],
+      "modules": [
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.27",
+      "title": "Learning from information security incidents",
+      "theme": "Organisational",
+      "summary": "Use incident knowledge to strengthen controls and prevent recurrence.",
+      "categories": [
+        "incidents"
+      ],
+      "task_ids": [
+        "ODOC-32"
+      ],
+      "modules": [],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.28",
+      "title": "Collection of evidence",
+      "theme": "Organisational",
+      "summary": "Establish procedures for identifying, collecting, acquiring and preserving evidence.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.29",
+      "title": "Information security during disruption",
+      "theme": "Organisational",
+      "summary": "Maintain information security at an appropriate level during disruption.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.30",
+      "title": "ICT readiness for business continuity",
+      "theme": "Organisational",
+      "summary": "Plan, implement, maintain and test ICT readiness based on business continuity objectives.",
+      "categories": [
+        "backup",
+        "incidents"
+      ],
+      "task_ids": [
+        "POL-17",
+        "ODOC-16"
+      ],
+      "modules": [
+        "operation",
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.5.31",
+      "title": "Legal, statutory, regulatory and contractual requirements",
+      "theme": "Organisational",
+      "summary": "Identify, document and keep current applicable requirements.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.32",
+      "title": "Intellectual property rights",
+      "theme": "Organisational",
+      "summary": "Implement procedures to protect intellectual property rights.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.33",
+      "title": "Protection of records",
+      "theme": "Organisational",
+      "summary": "Protect records against loss, destruction, falsification, unauthorised access and unauthorised release.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.34",
+      "title": "Privacy and protection of PII",
+      "theme": "Organisational",
+      "summary": "Identify and meet privacy and PII protection requirements.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.35",
+      "title": "Independent review of information security",
+      "theme": "Organisational",
+      "summary": "Review the organisation's information security approach independently at planned intervals or after significant changes.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.36",
+      "title": "Compliance with policies, rules and standards for information security",
+      "theme": "Organisational",
+      "summary": "Regularly review compliance with information security policies, rules and standards.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.5.37",
+      "title": "Documented operating procedures",
+      "theme": "Organisational",
+      "summary": "Document operating procedures and make them available to personnel who need them.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.6.1",
+      "title": "Screening",
+      "theme": "People",
+      "summary": "Conduct background verification checks on candidates before joining and, where appropriate, on an ongoing basis.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.6.2",
+      "title": "Terms and conditions of employment",
+      "theme": "People",
+      "summary": "Include information security responsibilities in employment terms and conditions.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.6.3",
+      "title": "Information security awareness, education and training",
+      "theme": "People",
+      "summary": "Provide appropriate information security awareness, education and training, including updates.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.6.4",
+      "title": "Disciplinary process",
+      "theme": "People",
+      "summary": "Establish and communicate a disciplinary process for information security policy violations.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.6.5",
+      "title": "Responsibilities after termination or change of employment",
+      "theme": "People",
+      "summary": "Define and enforce information security responsibilities that remain valid after termination or change of employment.",
+      "categories": [
+        "leavers"
+      ],
+      "task_ids": [
+        "PEO-08",
+        "ACC-05",
+        "ACC-09"
+      ],
+      "modules": [
+        "population"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.6.6",
+      "title": "Confidentiality or non-disclosure agreements",
+      "theme": "People",
+      "summary": "Identify, document, periodically review and obtain confidentiality or non-disclosure agreements.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.6.7",
+      "title": "Remote working",
+      "theme": "People",
+      "summary": "Implement security measures for information accessed, processed or stored while working remotely.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.6.8",
+      "title": "Information security event reporting",
+      "theme": "People",
+      "summary": "Provide a mechanism for personnel to report suspected or observed information security events promptly.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.1",
+      "title": "Physical security perimeters",
+      "theme": "Physical",
+      "summary": "Define and use security perimeters to protect areas containing information and associated assets.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.2",
+      "title": "Physical entry",
+      "theme": "Physical",
+      "summary": "Protect secure areas with appropriate entry controls and access points.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.3",
+      "title": "Securing offices, rooms and facilities",
+      "theme": "Physical",
+      "summary": "Design and implement physical security for offices, rooms and facilities.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.4",
+      "title": "Physical security monitoring",
+      "theme": "Physical",
+      "summary": "Monitor premises for unauthorised physical access.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.5",
+      "title": "Protecting against physical and environmental threats",
+      "theme": "Physical",
+      "summary": "Design and implement protection against physical and environmental threats and accidents.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.6",
+      "title": "Working in secure areas",
+      "theme": "Physical",
+      "summary": "Implement security measures for working in secure areas.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.7",
+      "title": "Clear desk and clear screen",
+      "theme": "Physical",
+      "summary": "Define and enforce clear-desk rules for papers and removable storage and clear-screen rules for information-processing facilities.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.8",
+      "title": "Equipment siting and protection",
+      "theme": "Physical",
+      "summary": "Site and protect equipment securely.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.9",
+      "title": "Security of assets off-premises",
+      "theme": "Physical",
+      "summary": "Protect off-site assets.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.10",
+      "title": "Storage media",
+      "theme": "Physical",
+      "summary": "Manage storage media through acquisition, use, transportation and disposal in accordance with classification and handling requirements.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.11",
+      "title": "Supporting utilities",
+      "theme": "Physical",
+      "summary": "Protect information-processing facilities from power failures and other disruptions caused by failures in supporting utilities.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.12",
+      "title": "Cabling security",
+      "theme": "Physical",
+      "summary": "Protect power and telecommunications cabling from interception, interference or damage.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.13",
+      "title": "Equipment maintenance",
+      "theme": "Physical",
+      "summary": "Maintain equipment correctly to ensure availability, integrity and confidentiality.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.7.14",
+      "title": "Secure disposal or re-use of equipment",
+      "theme": "Physical",
+      "summary": "Verify that equipment containing storage media has had sensitive data and licensed software removed or securely overwritten before disposal or re-use.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.1",
+      "title": "User endpoint devices",
+      "theme": "Technological",
+      "summary": "Protect information stored on, processed by or accessible through endpoint devices.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.2",
+      "title": "Privileged access rights",
+      "theme": "Technological",
+      "summary": "Restrict and manage allocation and use of privileged access rights.",
+      "categories": [
+        "aws-iam"
+      ],
+      "task_ids": [
+        "ACC-08",
+        "DOC-12"
+      ],
+      "modules": [
+        "population",
+        "operation"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.3",
+      "title": "Information access restriction",
+      "theme": "Technological",
+      "summary": "Restrict access to information and other associated assets in accordance with access control policy.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.4",
+      "title": "Access to source code",
+      "theme": "Technological",
+      "summary": "Manage read and write access to source code, development tools and software libraries.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.5",
+      "title": "Secure authentication",
+      "theme": "Technological",
+      "summary": "Implement secure authentication technologies and procedures based on access restrictions and policy.",
+      "categories": [
+        "mfa"
+      ],
+      "task_ids": [
+        "ACC-03",
+        "ACC-04",
+        "ACC-07",
+        "DOC-08"
+      ],
+      "modules": [
+        "population",
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.6",
+      "title": "Capacity management",
+      "theme": "Technological",
+      "summary": "Monitor and adjust resource use in line with current and expected capacity requirements.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.7",
+      "title": "Protection against malware",
+      "theme": "Technological",
+      "summary": "Implement malware protection supported by appropriate user awareness.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.8",
+      "title": "Management of technical vulnerabilities",
+      "theme": "Technological",
+      "summary": "Obtain information about technical vulnerabilities, evaluate exposure and take appropriate measures.",
+      "categories": [
+        "patch"
+      ],
+      "task_ids": [
+        "VUL-01",
+        "VUL-02",
+        "VUL-03",
+        "VUL-04",
+        "VUL-05",
+        "VUL-06",
+        "VUL-07",
+        "VUL-08",
+        "DEV-05",
+        "DOC-17",
+        "DOC-18"
+      ],
+      "modules": [
+        "population",
+        "operation",
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.9",
+      "title": "Configuration management",
+      "theme": "Technological",
+      "summary": "Establish, document, implement, monitor and review security configurations for hardware, software, services and networks.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.10",
+      "title": "Information deletion",
+      "theme": "Technological",
+      "summary": "Delete information stored in systems, devices or media when no longer required.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.11",
+      "title": "Data masking",
+      "theme": "Technological",
+      "summary": "Use data masking in accordance with access control policy and business requirements, considering applicable legal requirements.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.12",
+      "title": "Data leakage prevention",
+      "theme": "Technological",
+      "summary": "Apply data leakage prevention measures to systems, networks and devices that process, store or transmit sensitive information.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.13",
+      "title": "Information backup",
+      "theme": "Technological",
+      "summary": "Maintain and regularly test backup copies of information, software and systems in accordance with agreed backup policy.",
+      "categories": [
+        "backup"
+      ],
+      "task_ids": [
+        "DOC-01",
+        "DOC-14"
+      ],
+      "modules": [
+        "population",
+        "operation",
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.14",
+      "title": "Redundancy of information processing facilities",
+      "theme": "Technological",
+      "summary": "Implement sufficient redundancy to meet availability requirements.",
+      "categories": [
+        "backup"
+      ],
+      "task_ids": [
+        "DOC-01"
+      ],
+      "modules": [
+        "population",
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.15",
+      "title": "Logging",
+      "theme": "Technological",
+      "summary": "Produce, store, protect and analyse logs recording activities, exceptions, faults and other relevant events.",
+      "categories": [
+        "logging"
+      ],
+      "task_ids": [
+        "INF-08",
+        "INF-09",
+        "DOC-12"
+      ],
+      "modules": [
+        "population",
+        "operation"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.16",
+      "title": "Monitoring activities",
+      "theme": "Technological",
+      "summary": "Monitor networks, systems and applications for anomalous behaviour and take appropriate action.",
+      "categories": [
+        "logging"
+      ],
+      "task_ids": [
+        "INF-01",
+        "INF-10",
+        "INF-11",
+        "DOC-19",
+        "DOC-24"
+      ],
+      "modules": [
+        "population",
+        "operation",
+        "retest"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.17",
+      "title": "Clock synchronisation",
+      "theme": "Technological",
+      "summary": "Synchronise clocks of information-processing systems with approved time sources.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.18",
+      "title": "Use of privileged utility programs",
+      "theme": "Technological",
+      "summary": "Restrict and tightly control use of utility programs capable of overriding system and application controls.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.19",
+      "title": "Installation of software on operational systems",
+      "theme": "Technological",
+      "summary": "Implement procedures and measures to securely manage software installation on operational systems.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.20",
+      "title": "Networks security",
+      "theme": "Technological",
+      "summary": "Secure, manage and control networks to protect information in systems and applications.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.21",
+      "title": "Security of network services",
+      "theme": "Technological",
+      "summary": "Identify, implement and monitor security mechanisms, service levels and service requirements for network services.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.22",
+      "title": "Segregation of networks",
+      "theme": "Technological",
+      "summary": "Separate groups of information services, users and information systems in networks.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.23",
+      "title": "Web filtering",
+      "theme": "Technological",
+      "summary": "Manage access to external websites to reduce exposure to malicious content.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.24",
+      "title": "Use of cryptography",
+      "theme": "Technological",
+      "summary": "Define and implement rules for effective use of cryptography, including key management.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.25",
+      "title": "Secure development life cycle",
+      "theme": "Technological",
+      "summary": "Establish and apply rules for secure development of software and systems.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.26",
+      "title": "Application security requirements",
+      "theme": "Technological",
+      "summary": "Identify, specify and approve information security requirements when developing or acquiring applications.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.27",
+      "title": "Secure system architecture and engineering principles",
+      "theme": "Technological",
+      "summary": "Establish, document, maintain and apply secure system engineering principles.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.28",
+      "title": "Secure coding",
+      "theme": "Technological",
+      "summary": "Apply secure coding principles to software development.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.29",
+      "title": "Security testing in development and acceptance",
+      "theme": "Technological",
+      "summary": "Define and implement security testing processes in the development life cycle.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.30",
+      "title": "Outsourced development",
+      "theme": "Technological",
+      "summary": "Direct, monitor and review outsourced system development activities.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.31",
+      "title": "Separation of development, test and production environments",
+      "theme": "Technological",
+      "summary": "Separate and secure development, testing and production environments.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.32",
+      "title": "Change management",
+      "theme": "Technological",
+      "summary": "Subject changes to information-processing facilities and systems to change management procedures.",
+      "categories": [
+        "changes"
+      ],
+      "task_ids": [
+        "COD-03",
+        "COD-04",
+        "COD-05",
+        "DOC-05"
+      ],
+      "modules": [
+        "population",
+        "operation"
+      ],
+      "status": "configured",
+      "rationale": "Finding-level mapping to supplied checklist tasks; reviewer confirms relevance and platform-specific applicability."
+    },
+    {
+      "id": "A.8.33",
+      "title": "Test information",
+      "theme": "Technological",
+      "summary": "Select, protect and manage test information appropriately.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    },
+    {
+      "id": "A.8.34",
+      "title": "Protection of information systems during audit testing",
+      "theme": "Technological",
+      "summary": "Plan and agree audit tests involving operational systems and minimise their impact.",
+      "categories": [],
+      "task_ids": [],
+      "modules": [],
+      "status": "unmapped",
+      "rationale": "No configured task mapping. Identify a supported control or use a justified custom scope."
+    }
+  ]
+}

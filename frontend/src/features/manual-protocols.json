@@ -14,7 +14,7 @@
       {
         "id": "iso-INF-02",
         "label": "INF-02 · Review resources in scope (Infra → Resources)",
-        "guidance": "Every cloud resource ComplyJet discovers is reviewed and either kept In Scope or moved to Excluded with a reason.",
+        "guidance": "Every cloud resource in the inventory is reviewed and either included in scope or excluded with a recorded reason.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "INF-02"
@@ -212,7 +212,7 @@
       {
         "id": "iso-RSK-05",
         "label": "RSK-05 · Assess risk scenario: Segregation of duties has not been established, resulting in conflicts of interest.",
-        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Pull request approval by a second person, branch protection for admins, role definitions, access reviews. Small teams may accept this risk with compensating controls.",
+        "guidance": "Assess the stated risk scenario against the organisation’s risk register. Typical controls that reduce it: Pull request approval by a second person, branch protection for admins, role definitions, access reviews. Small teams may accept this risk with compensating controls.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "RSK-05"
@@ -454,7 +454,7 @@
       {
         "id": "iso-VUL-01",
         "label": "VUL-01 · Turn on Dependabot alerts for every repository",
-        "guidance": "GitHub scans each repository's dependencies and raises an alert when a package has a known vulnerability. These alerts flow into ComplyJet's Vulnerabilities page.",
+        "guidance": "GitHub scans repository dependencies and raises alerts for known vulnerabilities. Dated alerts and tracking records establish the assessed coverage.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "VUL-01"
@@ -469,8 +469,8 @@
       },
       {
         "id": "iso-VUL-03",
-        "label": "VUL-03 · Connect vulnerability findings to ComplyJet",
-        "guidance": "ComplyJet pulls vulnerabilities from GitHub (and cloud scanners) so they are tracked against your compliance controls.",
+        "label": "VUL-03 · Record and track vulnerability findings",
+        "guidance": "Vulnerability findings from repositories and cloud scanners are recorded with affected resources, severity, ownership and remediation status.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "VUL-03"
@@ -502,7 +502,7 @@
       {
         "id": "iso-VUL-07",
         "label": "VUL-07 · Review open vulnerabilities regularly",
-        "guidance": "Someone regularly reviews open vulnerabilities across GitHub, AWS Inspector and ComplyJet, so nothing is forgotten or left past its timeframe.",
+        "guidance": "Open vulnerabilities across repositories and cloud scanners are regularly reviewed against agreed remediation timeframes.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "VUL-07"
@@ -550,7 +550,7 @@
       {
         "id": "iso-RSK-08",
         "label": "RSK-08 · Assess risk scenario: Vulnerabilities and root causes leading to breaches and outages are not addressed and remediated.",
-        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Dependabot and cloud vulnerability scanning, fix timeframes by severity, incident root cause analysis, nonconformity tracker.",
+        "guidance": "Assess the stated risk scenario against the organisation’s risk register. Typical controls that reduce it: Dependabot and cloud vulnerability scanning, fix timeframes by severity, incident root cause analysis, nonconformity tracker.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "RSK-08"
@@ -604,7 +604,7 @@
       {
         "id": "iso-DOC-14",
         "label": "DOC-14 · Data restore test",
-        "guidance": "Evidence that restoring data from backups is tested periodically, and that the tests succeed. ComplyJet provides a template.",
+        "guidance": "Dated restore-test records identify the backup, tested scope, method, outcome and any outstanding recovery issues.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "DOC-14"
@@ -644,7 +644,7 @@
       {
         "id": "iso-RSK-06",
         "label": "RSK-06 · Assess risk scenario: Systems are unavailable due to unforeseen capacity constraints.",
-        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Autoscaling, capacity monitoring and alerts, documented capacity increase requests, status page.",
+        "guidance": "Assess the stated risk scenario against the organisation’s risk register. Typical controls that reduce it: Autoscaling, capacity monitoring and alerts, documented capacity increase requests, status page.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "RSK-06"
@@ -706,7 +706,7 @@
       {
         "id": "iso-VEN-04",
         "label": "VEN-04 · Complete a security review for every vendor",
-        "guidance": "Each vendor goes through ComplyJet's three-step review: gather the vendor's security documents, summarise the findings, and record a decision.",
+        "guidance": "Vendor reviews include relevant security documents, an assessment of the findings and a recorded decision.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "VEN-04"
@@ -864,7 +864,7 @@
       {
         "id": "iso-DOC-19",
         "label": "DOC-19 · Intrusion detection system setup",
-        "guidance": "Screenshots or configuration showing an intrusion detection system (IDS) monitors network traffic for unusual activity. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11); only needed for extra evidence or unconnected infrastructure.",
+        "guidance": "Configuration and monitoring records show that an intrusion detection system covers the relevant network traffic and environments.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "DOC-19"
@@ -872,7 +872,7 @@
       {
         "id": "iso-DOC-24",
         "label": "DOC-24 · Intrusion detection system alerts",
-        "guidance": "Evidence that the intrusion detection/prevention system (IDS/IPS) detects and alerts on suspicious activity, such as repeated failed logins or unusual traffic. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11).",
+        "guidance": "Detection and alert records show how the intrusion detection/prevention system responds to suspicious activity, including the assessed coverage and limitations.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "DOC-24"
@@ -896,7 +896,7 @@
       {
         "id": "iso-RSK-10",
         "label": "RSK-10 · Assess risk scenario: Intrusions, breaches, and anomalous events cannot be investigated.",
-        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Audit logging (for example CloudTrail with integrity validation), intrusion detection with alerts (for example GuardDuty), log retention, incident response plan.",
+        "guidance": "Assess the stated risk scenario against the organisation’s risk register. Typical controls that reduce it: Audit logging (for example CloudTrail with integrity validation), intrusion detection with alerts (for example GuardDuty), log retention, incident response plan.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "RSK-10"
@@ -934,7 +934,7 @@
       {
         "id": "iso-COD-01",
         "label": "COD-01 · Version Control System Linked",
-        "guidance": "At least one version control system (GitHub, GitLab, Bitbucket etc.) is connected to ComplyJet for secure code and change monitoring.",
+        "guidance": "Evidence identifies the in-scope version control systems and repositories and shows how secure code and change monitoring coverage is maintained.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "COD-01"
@@ -974,7 +974,7 @@
       {
         "id": "iso-DOC-02",
         "label": "DOC-02 · QA process",
-        "guidance": "Documentation of the QA process: how code is tested before it is released to production. ComplyJet provides a template.",
+        "guidance": "Documentation shows how code is tested before release to production, including responsibilities, approvals and recorded outcomes.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "DOC-02"
@@ -1046,7 +1046,7 @@
       {
         "id": "iso-RSK-02",
         "label": "RSK-02 · Assess risk scenario: Newly developed or acquired systems do not adhere to the organisation's security requirements.",
-        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Secure Development Policy, project-specific risk assessment, code review and branch protection, vendor reviews for acquired systems.",
+        "guidance": "Assess the stated risk scenario against the organisation’s risk register. Typical controls that reduce it: Secure Development Policy, project-specific risk assessment, code review and branch protection, vendor reviews for acquired systems.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "RSK-02"
@@ -1116,7 +1116,7 @@
       {
         "id": "iso-DOC-19",
         "label": "DOC-19 · Intrusion detection system setup",
-        "guidance": "Screenshots or configuration showing an intrusion detection system (IDS) monitors network traffic for unusual activity. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11); only needed for extra evidence or unconnected infrastructure.",
+        "guidance": "Configuration and monitoring records show that an intrusion detection system covers the relevant network traffic and environments.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "DOC-19"
@@ -1124,7 +1124,7 @@
       {
         "id": "iso-DOC-24",
         "label": "DOC-24 · Intrusion detection system alerts",
-        "guidance": "Evidence that the intrusion detection/prevention system (IDS/IPS) detects and alerts on suspicious activity, such as repeated failed logins or unusual traffic. ComplyJet already checks this automatically for connected infrastructure (see INF-10, INF-11).",
+        "guidance": "Detection and alert records show how the intrusion detection/prevention system responds to suspicious activity, including the assessed coverage and limitations.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "DOC-24"
@@ -1148,7 +1148,7 @@
       {
         "id": "iso-RSK-10",
         "label": "RSK-10 · Assess risk scenario: Intrusions, breaches, and anomalous events cannot be investigated.",
-        "guidance": "Standard risk scenario from the ComplyJet risk library. Typical controls that reduce it: Audit logging (for example CloudTrail with integrity validation), intrusion detection with alerts (for example GuardDuty), log retention, incident response plan.",
+        "guidance": "Assess the stated risk scenario against the organisation’s risk register. Typical controls that reduce it: Audit logging (for example CloudTrail with integrity validation), intrusion detection with alerts (for example GuardDuty), log retention, incident response plan.",
         "mandatory": false,
         "evaluationKind": "reviewer_assessment",
         "sourceTaskId": "RSK-10"

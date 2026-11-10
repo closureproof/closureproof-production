@@ -26,6 +26,10 @@ await db.exec(await fs.readFile(new URL('../../supabase/migrations/2026110600010
 await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261106000200_public_pilot.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../supabase/tests/pre_iso_finding_fixture.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261106000300_iso27001_checklists.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261109000100_review_completion_workflow.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261109000200_control_review_scopes.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261109000300_simplified_reviewer_judgement.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261109000400_conditional_judgement.sql',import.meta.url),'utf8'));
 const objects = new Map(); const tokens = new Map();
 const user = u => ({id:u.id,aud:'authenticated',role:'authenticated',email:u.email,email_confirmed_at:new Date().toISOString(),confirmed_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:u.name},identities:[],created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
 function session(u) { const enc=o=>Buffer.from(JSON.stringify(o)).toString('base64url'); const token=enc({alg:'HS256',typ:'JWT'})+'.'+enc({sub:u.id,email:u.email,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600,iat:Math.floor(Date.now()/1000),session_id:crypto.randomUUID()})+'.test-signature'; tokens.set(token,u); return {access_token:token,refresh_token:token,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,user:user(u)}; }
@@ -46,7 +50,7 @@ const server=http.createServer(async(req,res)=>{
   }
   if(path.startsWith('/rest/v1/rpc/')) {
    const name=path.split('/').pop();if(!/^(cpw|cpp)_[a-z0-9_]+$/.test(name))return send(res,404,{});
-   const body=JSON.parse((await read(req)).toString()||'{}');const keys=Object.keys(body);if(keys.some(k=>!/^p_[a-z_]+$/.test(k)))return send(res,400,{});
+   const body=JSON.parse((await read(req)).toString()||'{}');const keys=Object.keys(body);if(keys.some(k=>!/^p_[a-z0-9_]+$/.test(k)))return send(res,400,{});
    const sql=`select public.${name}(${keys.map((key,i)=>`${key} => $${i+1}`).join(',')}) as value`;
    const result=await serial(who,()=>db.query(sql,keys.map(k=>typeof body[k]==='object'&&body[k]!==null&&!Array.isArray(body[k])?JSON.stringify(body[k]):body[k])));
    return send(res,200,result.rows[0].value);
