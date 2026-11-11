@@ -1,0 +1,48 @@
+{
+  "name": "@closureproof/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack --hostname 127.0.0.1 --port 3005",
+    "build": "next build --webpack",
+    "preview": "next start --hostname 127.0.0.1 --port 3005",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test:db": "node scripts/test-supabase-sql.mjs && node scripts/test-supabase-legacy.mjs && node scripts/test-public-pilot.mjs && node scripts/test-iso27001.mjs && node scripts/test-review-workflow.mjs && node scripts/test-control-scopes.mjs && node scripts/test-simplified-judgement.mjs && node scripts/test-conditional-judgement.mjs",
+    "check:supabase": "node scripts/check-supabase.mjs",
+    "start": "next start --hostname 127.0.0.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "fflate": "^0.8.3",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.468.0",
+    "next": "^16.4.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "@playwright/test": "^1.56.0",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@testing-library/jest-dom": "^6.9.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.2.0",
+    "vitest": "^5.1.0",
+    "react-router": "^7.9.0",
+    "@closureproof/typescript-config": "*"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

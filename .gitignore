@@ -1,14 +1,14 @@
-frontend/node_modules/
-frontend/dist/
-frontend/.sites-runtime/
-frontend/.openai/
-frontend/test-results/
-frontend/playwright-report/
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.sites-runtime/
+apps/web/.openai/
+apps/web/test-results/
+apps/web/playwright-report/
 *.tsbuildinfo
 .env
 .env.local
-frontend/.env
-frontend/.env.local
+apps/web/.env
+apps/web/.env.local
 .DS_Store
 ClosureProof_Product_and_Technical_Strategy_Clean.pdf
 
@@ -23,3 +23,12 @@ agents.md
 
 # Supabase migrations
 supabase/migrations/
+
+# Next.js build output
+apps/web/.next/
+apps/web/out/
+apps/web/next-env.d.ts
+
+# Workspace dependencies and Turborepo cache
+node_modules/
+.turbo/

@@ -2,9 +2,33 @@
 
 **Evidence before closure.**
 
-ClosureProof is a public pilot for submitting audit findings, uploading corrective-action evidence and recording structured reviews. React and TypeScript provide the interface; Supabase PostgreSQL and Storage persist the records and files. No separate application server is required.
+ClosureProof is a public pilot for submitting audit findings, uploading corrective-action evidence and recording structured reviews. The application uses Next.js App Router, React and TypeScript. Supabase PostgreSQL RPCs and Storage persist the records and evidence; PDF reports are generated in the browser. The repository uses npm workspaces and Turborepo to coordinate development, builds and checks.
 
 The pilot has no sign-in, protected routes, assigned roles or enforced reviewer-account separation. Everyone using the app shares the pilot workspace. Reviewer names and independence declarations are self-reported. No audit verdict, compliance score, AI assessment or readiness engine is generated.
+
+## Architecture and repository structure
+
+```text
+apps/
+  web/                       @closureproof/web — Next.js application
+    src/app/                 App Router pages, layouts and route boundaries
+    src/screens/             Landing page, submission and review screens
+    src/components/          Shared interface and workflow components
+    src/features/            ISO catalogue, protocols, scope and judgement logic
+    src/lib/                 Supabase clients, workflow APIs and report generation
+    public/                  Brand assets and licensed report fonts
+    e2e/                     Desktop and mobile Playwright scenarios
+    scripts/                 SQL contract fixtures and schema checks
+packages/
+  typescript-config/         Shared base and Next.js TypeScript settings
+supabase/                    SQL migrations and database test fixtures
+turbo.json                   Task graph, environment handling and local caching
+package.json                 Root workspace definitions and Turbo commands
+package-lock.json            Single lockfile for all workspaces
+netlify.toml                 Netlify monorepo build configuration
+```
+
+Next.js owns application routing and production builds. React Router and Vite remain test-only tooling for the existing component suite. Node.js runs the application, npm manages workspace dependencies, and Turborepo orchestrates tasks; Turborepo is not the application runtime. Shared TypeScript configuration in `packages/typescript-config` is consumed as the local `@closureproof/typescript-config` workspace.
 
 ## Supabase configuration
 
@@ -14,7 +38,7 @@ The pilot has no sign-in, protected routes, assigned roles or enforced reviewer-
 4. Run [the control review scope migration](supabase/migrations/20261109000200_control_review_scopes.sql) to enable control selection and scoped completion requirements.
 5. Run [the simplified judgement migration](supabase/migrations/20261109000300_simplified_reviewer_judgement.sql) to enable version 2 judgement validation and report template 1.1.
 6. Run [the conditional judgement migration](supabase/migrations/20261109000400_conditional_judgement.sql) to validate progressive field requirements and retain earlier schemas.
-7. Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the frontend environment. `VITE_SUPABASE_ANON_KEY` is also supported. Use only public browser credentials; never a service-role key or database password. Environment files remain ignored.
+7. Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `apps/web/.env.local` or the hosting platform’s environment configuration. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported. Use only public browser credentials; never a service-role key or database password. Environment files remain ignored.
 8. Open the dashboard, submit a finding, attach evidence and record a manual review. No Auth settings, account creation or email confirmation is needed.
 
 The browser key cannot install SQL. Connection failures remain visible and do not create a success message or substitute dummy data. Form fields and protocol choices remain available while a storage problem is resolved.
@@ -53,23 +77,61 @@ The public pilot permits anyone using the app to read, submit, edit and manually
 
 ## Public website
 
-Navy/blue/white branding and rounded controls remain. Demo enquiries use `VITE_DEMO_REQUEST_URL` and the separate [demo-request migration](supabase/migrations/20261105000100_create_demo_requests.sql). The survey opens Google Forms in a new tab. Providers remain **Planned integration**; only their logos scroll, with hover/focus pause and reduced-motion support.
+Navy/blue/white branding and rounded controls remain. Demo enquiries use `NEXT_PUBLIC_DEMO_REQUEST_URL` and the separate [demo-request migration](supabase/migrations/20261105000100_create_demo_requests.sql). The survey opens Google Forms in a new tab. Providers remain **Planned integration**; only their logos scroll, with hover/focus pause and reduced-motion support.
 
-## Development and validation
+## Workspace commands and validation
+
+Use the npm version declared by `packageManager` in the root `package.json` (currently npm 11.6.2) with a compatible Node.js release. Install dependencies once from the repository root:
 
 ```sh
-npm --prefix frontend ci
-npm --prefix frontend run typecheck
-npm --prefix frontend test
-npm --prefix frontend run test:db
-npm --prefix frontend run test:e2e
-npm --prefix frontend run check:supabase
-npm --prefix frontend run build
+npm ci
 ```
 
-Database tests execute PostgreSQL/WASM SQL, including an account-free pilot schema and preservation of the historical schemas. Browser tests use an isolated PostgreSQL-backed Supabase contract fixture to check public navigation, submission, upload/download, review completion, report retry/download, assessment corrections, resubmission, approval decisions, dashboard population and stale-review history on desktop/mobile. They do not prove the remote project's complete Storage implementation. `check:supabase` checks the live public schema without creating user records or files.
+Run all commands below from that same root. Application tasks are dispatched through Turborepo.
 
-Netlify publishes `frontend/dist`; configure the public Supabase environment values there. SQL fixtures under `supabase/tests/` are test-only and must not be run in the real project.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Run the Next.js development server. |
+| `npm run build` | Create the production build in `apps/web/.next`. |
+| `npm run start` | Build if needed, then start the production server. |
+| `npm run preview` | Build if needed, then serve the production preview. |
+| `npm run typecheck` | Generate Next.js route types and check TypeScript. |
+| `npm test` | Run Vitest component and feature tests. |
+| `npm run test:db` | Run isolated PostgreSQL/WASM migration and workflow checks. |
+| `npm run test:e2e` | Build and run desktop/mobile Playwright scenarios against an isolated Supabase fixture. |
+| `npm run check:supabase` | Check the configured live public schema without creating records or files. |
+
+Target a workspace using Turbo’s filter, for example:
+
+```sh
+npm run build -- --filter=@closureproof/web
+```
+
+Keep one root lockfile; do not create application-level lockfiles or install dependencies separately in each workspace. Add application dependencies with `npm install <package> --workspace @closureproof/web`.
+
+### Task caching and environment configuration
+
+Turbo caches production builds and unit tests locally. Build hashes include the declared public environment values, application `.env*` files and shared TypeScript configuration. Next.js runtime output is retained, while `.next/cache` and `.next/dev` are excluded from build artifacts. Development servers, production servers, type checks, database checks, browser tests and live schema checks are not cached. Remote caching is not configured.
+
+Environment files, `.next`, `node_modules` and `.turbo` stay ignored. Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or `NEXT_PUBLIC_SUPABASE_ANON_KEY`) and optional `NEXT_PUBLIC_DEMO_REQUEST_URL` for the web application. Legacy `VITE_*` equivalents remain supported by `next.config.ts` during migration. Public values are included in the browser build; never place service-role credentials or database passwords in them. Rebuild after changing public deployment values.
+
+### Validation boundaries
+
+Database tests cover the account-free schema and preservation of historical schemas. Browser tests use an isolated PostgreSQL-backed Supabase contract fixture for navigation, submission, upload/download, completion, report retries, corrections, resubmission, approvals and stale-review history. These checks do not prove the live project’s complete Storage implementation. SQL fixtures under `supabase/tests/` must not be run in the live project.
+
+## Deployment
+
+### Vercel
+
+- Set **Root Directory** to `apps/web` and select the **Next.js** framework preset.
+- Allow source files outside the app root so shared workspace packages are available.
+- `apps/web/vercel.json` installs from the root lockfile and builds through Turbo. Remove obsolete dashboard command overrides.
+- Keep the framework’s default output directory; do not use the former Vite `dist` setting.
+- Configure the public application environment values before building.
+
+### Netlify
+
+The root `netlify.toml` installs from the repository workspace and runs the filtered Turbo build. Set **Package directory** to `apps/web` so Netlify detects the Next.js application. The publish path is `apps/web/.next`; the Next.js adapter handles framework deployment. Deployment itself is separate from running the local build.
 
 ## ISO 27001 checklist-backed reviews
 

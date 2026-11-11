@@ -1,16 +1,7 @@
 [build]
-  command = "npm --prefix frontend ci && npm --prefix frontend run build"
-  publish = "frontend/dist"
+  base = "."
+  command = "npm run build -- --filter=@closureproof/web"
+  publish = "apps/web/.next"
 
-# The frontend uses Supabase Auth, Postgres RPC/RLS and private Storage directly.
-# Reserve same-origin API URLs so SPA fallback never returns HTML as API data.
-[[redirects]]
-  from = "/api/*"
-  to = "/api-not-configured.json"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Set the Netlify package directory to apps/web; install from the root lockfile.
+# Netlify supplies the Next.js adapter for the selected application package.
