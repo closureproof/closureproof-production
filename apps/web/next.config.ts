@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 import { fileURLToPath } from 'node:url';
 // Explicit public-value compatibility for existing deployment configuration.
 const nextConfig: NextConfig = {
+  transpilePackages: ['@closureproof/document-contracts', '@closureproof/assessment-engine'],
   outputFileTracingRoot: fileURLToPath(new URL('../..', import.meta.url)),
   turbopack: { root: fileURLToPath(new URL('../..', import.meta.url)) },
   env: {
@@ -12,10 +13,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      ...['dashboard.html', 'preview', 'workbench'].flatMap(alias => [
-        { source: `/${alias}/reports/:path*`, destination: '/app/findings', permanent: false },
-        { source: `/${alias}/:path*`, destination: '/app/:path*', permanent: false },
-      ]),
       ...['login', 'signup', 'reset-password', 'update-password'].map(path => ({ source: `/${path}`, destination: '/app', permanent: false })),
       { source: '/app/review-queue', destination: '/app/reviews', permanent: false },
     ];

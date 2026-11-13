@@ -1,0 +1,16 @@
+{
+  "name": "@closureproof/assessment-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./publication": "./src/publication.ts",
+    "./aws-iam": "./src/aws-iam.ts",
+    "./checklist-mapping": "./src/checklist-mapping.ts",
+    "./protocol-catalogue": "./src/protocol-catalogue.ts"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  }
+}

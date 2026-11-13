@@ -1,3 +1,8 @@
+import type { AppliedReviewProposal, ReviewProposalSnapshot } from './ai-review-contract';
+import type { ReviewSources } from '../features/review-reuse';
+import type { EngineDraft } from '@closureproof/assessment-engine/aws-iam';
+import type { EngineRequest, RulesSnapshot } from './rules-assessment';
+import { DOCX_MIME, type ConfirmedFactSnapshot, type ReportSource } from '@closureproof/document-contracts';
 import type { AuditEvent, Readiness } from './types';
 import { getSupabase, serviceError } from './supabase';
 import type { SoaCheck } from '../features/soa-assessment';
@@ -5,12 +10,12 @@ import type { ReviewScope, ScopeRequest } from '../features/control-scope';
 import type { ClosureJudgement } from '../features/review-judgement';
 import { isoProtocolTemplates, presentProtocol, ISO_PROTOCOL_VERSION, type ISOChecklistTask } from '../features/iso27001';
 export interface ManualProtocol { review_scope?: ReviewScope; code: string; title: string; category: string; version: string; status: string; checks: { id: string; label: string; guidance: string; mandatory: boolean; evaluationKind: string; mapped_controls?: string[]; sourceTask?: ISOChecklistTask }[] }
-export interface FindingInput { scope_request?: ScopeRequest; title: string; description: string; owner: string; severity: string; protocol_code: string; account_reference: string; affected_systems: string; resources: string; approved_baseline: string; root_cause: string; recurrence_prevention: string; corrective_action: string; implementation_date: string | null; deadline: string | null; control_reference: string; revision?: number }
+export interface FindingInput { source_report?: ReportSource; scope_request?: ScopeRequest; title: string; description: string; owner: string; severity: string; protocol_code: string; account_reference: string; affected_systems: string; resources: string; approved_baseline: string; root_cause: string; recurrence_prevention: string; corrective_action: string; implementation_date: string | null; deadline: string | null; control_reference: string; revision?: number }
 export interface EvidenceMetadata { revision: number; evidence_type: string; source_system: string; source_account: string; covered_resources: string; captured_at: string | null; period_start: string | null; period_end: string | null; description: string; submitted_by: string; supersedes_id: string | null }
 export interface ManualEvidence { id: string; findingId: string; uploadedBy: string; version: number; supersedesId: string | null; filename: string; mime: string; size: number; sha256: string; createdAt: string; metadata: Omit<EvidenceMetadata, 'revision' | 'supersedes_id'>; disposition: string; review: { reviewer?: string; rationale?: string; history?: unknown[] }; scanStatus: string }
 export interface ManualCheck extends SoaCheck { reason_source?: string; check_id: string; reason: string; evidence_ids: string[]; source_location: string }
 export interface ExceptionEntry { acceptance_authority?: string; acceptance_date?: string; acceptance_reference?: string; compensating_controls?: string; reference: string; description: string; owner: string; disposition: 'open' | 'resolved' | 'accepted' | 'mitigated'; evidence_reference: string; closure_impact: string }
-export interface ReviewInput { review_step?: number; unassessed_checks_reason?: string; scope_confirmed?: boolean; scope_confirmation_notes?: string; reviewer_conclusion?: string; exception_entries?: ExceptionEntry[]; exceptions_assessed?: boolean; supersedes_assessment_id?: string | null; closure_judgement?: ClosureJudgement; revision: number; reviewer: string; independent: boolean; independence_notes: string; checks: ManualCheck[]; population_expected: number | null; population_reviewed: number | null; population_notes: string; exceptions: string; operating_period_notes: string; retest_notes: string; clarification_request: string; recommendation: Readiness | null; recommendation_reason: string; next_status: string; publish: boolean }
+export interface ReviewInput { ai_review_proposal?:AppliedReviewProposal; ai_review_source_keys?:string[]; ai_review_proposal_snapshot?:ReviewProposalSnapshot; review_shared_sources?: ReviewSources; streamlined_review?: boolean; engine_draft?: EngineDraft; engine_request?: EngineRequest; rules_assessment?: RulesSnapshot; ai_confirmation_ids?: string[]; ai_confirmed_facts?: ConfirmedFactSnapshot[]; review_step?: number; unassessed_checks_reason?: string; scope_confirmed?: boolean; scope_confirmation_notes?: string; reviewer_conclusion?: string; exception_entries?: ExceptionEntry[]; exceptions_assessed?: boolean; supersedes_assessment_id?: string | null; closure_judgement?: ClosureJudgement; revision: number; reviewer: string; independent: boolean; independence_notes: string; checks: ManualCheck[]; population_expected: number | null; population_reviewed: number | null; population_notes: string; exceptions: string; operating_period_notes: string; retest_notes: string; clarification_request: string; recommendation: Readiness | null; recommendation_reason: string; next_status: string; publish: boolean }
 export interface ManualReview extends Omit<ReviewInput, 'revision' | 'publish'> { cycleNumber: number; assessmentRevision: number; supersedesId: string | null; id: string; findingId: string; findingRevision: number; createdAt: string; status: string; stale: boolean; authorship: string; evidence_snapshot: ManualEvidence[]; protocol_snapshot: ManualProtocol; finding_snapshot: FindingInput }
 export interface LegacyEvidence { id: string; filename: string; storage_path?: string; object_path?: string; sha256: string | null; evidence_version?: number; version?: number; created_at: string }
 export interface LegacyReview { id: string; decision?: string; comment?: string; reviewer_id?: string; created_at: string }
@@ -59,12 +64,13 @@ async function rows(table: string, organisationId?: string): Promise<Row[]> {
   return data || [];
 }
 const eventFromRow = (e: Row): AuditEvent => ({ id: e.id, findingId: e.finding_id || '', title: displayReviewText(e.title), detail: e.detail, timestamp: e.created_at, actor: displayActor(e.actor_name), revision: e.revision });
-const mimeTypes: Record<string, string> = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', csv: 'text/csv', json: 'application/json', txt: 'text/plain' };
+const mimeTypes: Record<string, string> = { docx: DOCX_MIME, pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', csv: 'text/csv', json: 'application/json', txt: 'text/plain' };
 export async function validateDemoFile(file: File) {
   const mime = mimeTypes[file.name.split('.').pop()?.toLowerCase() || ''];
-  if (!mime) throw new Error('Choose PDF, PNG, JPG, CSV, JSON or TXT. Video and executable files are disabled.');
+  if (!mime) throw new Error('Choose PDF, DOCX, PNG, JPG, CSV, JSON or TXT. Video and executable files are disabled.');
   if (!file.size || file.size > 25 * 1024 * 1024) throw new Error('Choose a non-empty file up to 25 MB.');
   const bytes = new Uint8Array(await file.arrayBuffer());
+  if (mime === DOCX_MIME && (bytes[0] !== 80 || bytes[1] !== 75 || bytes[2] !== 3 || bytes[3] !== 4)) throw new Error('The file is not a DOCX package.');
   if (mime === 'application/pdf' && new TextDecoder().decode(bytes.slice(0, 5)) !== '%PDF-') throw new Error('The file is not a PDF.');
   if (mime === 'image/png' && [137, 80, 78, 71, 13, 10, 26, 10].some((n, i) => bytes[i] !== n)) throw new Error('The file is not a PNG image.');
   if (mime === 'image/jpeg' && (bytes[0] !== 255 || bytes[1] !== 216 || bytes[2] !== 255)) throw new Error('The file is not a JPEG image.');
@@ -106,11 +112,12 @@ export const manualApi = {
   },
   protocols: async (): Promise<ManualProtocol[]> => isoProtocolTemplates as ManualProtocol[],
   finding,
-  create: async (body: FindingInput, org: string) => {
+  create: async (body: FindingInput, org: string, onCreated?: (id:string)=>void) => {
     const { data, error } = await getSupabase().from('cpp_protocols').select('version').eq('code', body.protocol_code).eq('version', ISO_PROTOCOL_VERSION);
     if (error) throw serviceError(error);
     if (!data?.length) throw new Error('Install the ISO 27001 checklist migration (20261106000300_iso27001_checklists.sql) in Supabase before creating a finding.');
-    return finding(body.scope_request ? await rpc<string>('cpp_create_scoped_finding', { p_org: org, p_details: body, p_scope: body.scope_request }) : await rpc<string>('cpp_create_finding', { p_org: org, p_details: body }));
+    const id=body.scope_request ? await rpc<string>('cpp_create_scoped_finding', { p_org: org, p_details: body, p_scope: body.scope_request }) : await rpc<string>('cpp_create_finding', { p_org: org, p_details: body });
+    onCreated?.(id);return finding(id);
   },
   amendScope: async (id: string, revision: number, scope: ScopeRequest, actor: string, reason: string) => { await rpc('cpp_amend_review_scope', { p_id: id, p_revision: revision, p_scope: scope, p_actor: actor, p_reason: reason }); return finding(id); },
   applyChecklist: async (id: string, revision: number, taskIds: string[]) => { await rpc('cpp_apply_iso27001_checklist', { p_id: id, p_revision: revision, p_task_ids: taskIds }); return finding(id); },
@@ -138,7 +145,7 @@ export const manualApi = {
   },
   inspectText: async (id: string, evidence: string) => {
     const file = await readFile(id, evidence, 'inspect');
-    if (file.mime === 'application/pdf') return { text: '', notice: 'Download the original PDF for manual inspection. Active PDF content is not embedded.' };
+    if (file.mime === 'application/pdf' || file.mime === DOCX_MIME) return { text: '', notice: 'Download the original document for inspection. Active document content is not embedded.' };
     const text = await file.blob.text(); return { text: text.slice(0, 100000), truncated: text.length > 100000, notice: 'Inert text preview of submitted material. No live system verification performed.' };
   },
   inspectImage: async (id: string, evidence: string) => {

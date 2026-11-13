@@ -9,6 +9,6 @@ export default defineConfig({
   workers: 1,
   webServer: [
     { command: 'node scripts/supabase-test-server.mjs', url: 'http://127.0.0.1:54330/health', reuseExistingServer: false },
-    { command: 'npm run build && npm run start -- --port 3006', env: { NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54330', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' }, url: 'http://127.0.0.1:3006', reuseExistingServer: false, timeout: 180000 },
+    { command: 'npm run build && npm run start -- --port 3006', env: { AI_EXTRACTION_ENABLED: 'true', OPENAI_API_KEY: 'test_provider_fixture_only', OPENAI_EXTRACTION_MODEL:'test-review-fixture', SUPABASE_SERVICE_ROLE_KEY: 'test_service_role_fixture_only', NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54330', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' }, url: 'http://127.0.0.1:3006', reuseExistingServer: false, timeout: 180000 },
   ],
 });

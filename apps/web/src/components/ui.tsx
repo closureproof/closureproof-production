@@ -5,8 +5,9 @@ import { ArrowUpRight, AlertCircle, Inbox, LoaderCircle } from 'lucide-react';
 export const buttonClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-charcoal hover:bg-charcoal disabled:opacity-50';
 export const secondaryClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-paper px-5 py-3 text-sm font-semibold transition-colors hover:border-accent hover:text-accent';
 
-export function Button({ secondary, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }) {
-  return <button className={`${secondary ? secondaryClass : buttonClass} ${className}`} {...props} />;
+export function Button({ secondary, size = 'regular', tone = 'neutral', className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean; size?: 'regular' | 'compact'; tone?: 'neutral' | 'danger' }) {
+  const compact = `inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${tone === 'danger' ? 'border-rose-200/70 bg-white text-rose-700 hover:border-rose-300 hover:bg-rose-50' : 'border-line bg-white text-muted hover:border-accent/30 hover:bg-soft hover:text-accent'}`;
+  return <button className={`${size === 'compact' ? compact : secondary ? secondaryClass : buttonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 ${className}`} {...props} />;
 }
 
 // Compact vector rendition of the supplied C-and-check logo for navigation.

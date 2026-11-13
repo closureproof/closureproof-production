@@ -38,6 +38,13 @@
         "VITE_SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_ANON_KEY",
         "VITE_DEMO_REQUEST_URL"
+      ],
+      "passThroughEnv": [
+        "AI_EXTRACTION_ENABLED",
+        "AI_EXTRACTION_DAILY_LIMIT",
+        "OPENAI_API_KEY",
+        "OPENAI_EXTRACTION_MODEL",
+        "SUPABASE_SERVICE_ROLE_KEY"
       ]
     },
     "start": {
@@ -55,6 +62,13 @@
         "VITE_SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_ANON_KEY",
         "VITE_DEMO_REQUEST_URL"
+      ],
+      "passThroughEnv": [
+        "AI_EXTRACTION_ENABLED",
+        "AI_EXTRACTION_DAILY_LIMIT",
+        "OPENAI_API_KEY",
+        "OPENAI_EXTRACTION_MODEL",
+        "SUPABASE_SERVICE_ROLE_KEY"
       ]
     },
     "preview": {
@@ -72,6 +86,13 @@
         "VITE_SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_ANON_KEY",
         "VITE_DEMO_REQUEST_URL"
+      ],
+      "passThroughEnv": [
+        "AI_EXTRACTION_ENABLED",
+        "AI_EXTRACTION_DAILY_LIMIT",
+        "OPENAI_API_KEY",
+        "OPENAI_EXTRACTION_MODEL",
+        "SUPABASE_SERVICE_ROLE_KEY"
       ]
     },
     "typecheck": {

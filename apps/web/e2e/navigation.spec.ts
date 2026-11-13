@@ -10,5 +10,5 @@ test('all existing sidebar sections open their own real-data pages', async ({ pa
   await expect(page).toHaveURL(new RegExp('/app'+suffix+'$'));
   await expect(page.getByRole('heading',{name:heading,exact:true})).toBeVisible();
  }
- for(const alias of ['/dashboard.html','/preview','/workbench']){await page.goto(alias);await expect(page).toHaveURL(/\/app$/);await expect(page.getByRole('heading',{name:'Closure overview',exact:true})).toBeVisible();}
+ for(const alias of ['/dashboard.html','/preview','/workbench']){await page.goto(alias);await expect(page).toHaveURL(new RegExp(alias.replace('.', '\\.')+'$'));await expect(page.getByRole('heading',{name:'Page not found',exact:true})).toBeVisible();}
 });

@@ -52,3 +52,10 @@
   .provider-copy { display: none; }
   .provider-window { mask-image: none; }
 }
+
+/* Reserve space beside the review while an original report is open. */
+@media (min-width: 1280px) {
+  body:has([data-report-preview]) #main {
+    margin-right: min(45vw, 48rem);
+  }
+}

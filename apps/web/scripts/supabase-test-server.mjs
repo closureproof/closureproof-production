@@ -1,3 +1,4 @@
+import { reviewProviderFixture } from '../../../supabase/tests/ai_review_provider_fixture.mjs';
 // Test-only Supabase contract emulator backed by real PostgreSQL/WASM.
 // It is not shipped or used by the application and never contacts the live project.
 import { PGlite } from '@electric-sql/pglite';
@@ -10,7 +11,7 @@ const identities = [
  { id:'22222222-2222-4222-8222-222222222222',email:'reviewer@example.test',name:'Reviewer Jane' },
  { id:'33333333-3333-4333-8333-333333333333',email:'outsider@example.test',name:'Other Workspace' },
 ];
-await db.exec(`create role anon; create role authenticated;
+await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
  create schema auth; create schema storage;
  create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
@@ -30,18 +31,26 @@ await db.exec(await fs.readFile(new URL('../../../supabase/migrations/2026110900
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261109000200_control_review_scopes.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261109000300_simplified_reviewer_judgement.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261109000400_conditional_judgement.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261111000100_ai_document_extraction.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261111000200_rules_supported_assessment.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261111000300_checklist_linked_engine.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261111000400_all_protocol_engines.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261111000500_ai_review_preparation.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261112000100_review_requests.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/tests/ai_extraction_fixture.sql',import.meta.url),'utf8'));
 const objects = new Map(); const tokens = new Map();
 const user = u => ({id:u.id,aud:'authenticated',role:'authenticated',email:u.email,email_confirmed_at:new Date().toISOString(),confirmed_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:u.name},identities:[],created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
 function session(u) { const enc=o=>Buffer.from(JSON.stringify(o)).toString('base64url'); const token=enc({alg:'HS256',typ:'JWT'})+'.'+enc({sub:u.id,email:u.email,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600,iat:Math.floor(Date.now()/1000),session_id:crypto.randomUUID()})+'.test-signature'; tokens.set(token,u); return {access_token:token,refresh_token:token,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,user:user(u)}; }
 let queue=Promise.resolve();
-function serial(u,fn) { const promise=queue.then(async()=>{await db.exec(`reset role; set role ${u?'authenticated':'anon'}; set request.jwt.claim.sub='${u?.id||''}';`);try{return await fn();}finally{await db.exec('reset role');}});queue=promise.catch(()=>{});return promise; }
+function serial(u,fn) { const promise=queue.then(async()=>{await db.exec(`reset role; set role ${u?.service?'service_role':u?'authenticated':'anon'}; set request.jwt.claim.sub='${u?.id||''}';`);try{return await fn();}finally{await db.exec('reset role');}});queue=promise.catch(()=>{});return promise; }
 function send(res,status,body,headers={}) {res.writeHead(status,{'Content-Type':'application/json','Access-Control-Allow-Origin':'http://127.0.0.1:3006','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,prefer,range,x-upsert,cache-control','Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS','Access-Control-Expose-Headers':'Content-Range',...headers});res.end(body instanceof Buffer?body:JSON.stringify(body));}
 async function read(req) {const chunks=[];for await(const chunk of req)chunks.push(chunk);return Buffer.concat(chunks);}
 const server=http.createServer(async(req,res)=>{
  if(req.method==='OPTIONS')return send(res,200,{}, {'Access-Control-Allow-Headers':req.headers['access-control-request-headers']||'authorization,apikey,content-type'});
- const url=new URL(req.url,'http://127.0.0.1:54330'); const path=decodeURIComponent(url.pathname); const who=tokens.get((req.headers.authorization||'').replace(/^Bearer /,''));
+ const url=new URL(req.url,'http://127.0.0.1:54330'); const path=decodeURIComponent(url.pathname); const who=req.headers.apikey==='test_service_role_fixture_only'?{service:true}:tokens.get((req.headers.authorization||'').replace(/^Bearer /,''));
  try {
   if(path==='/health')return send(res,200,{ready:true,testOnly:true});
+  if(path==='/openai-review-fixture'&&req.method==='POST')return send(res,200,reviewProviderFixture(JSON.parse((await read(req)).toString())));
   if(path.startsWith('/auth/v1/')) {
    if(path.endsWith('/token')) {const body=JSON.parse((await read(req)).toString());const u=url.searchParams.get('grant_type')==='refresh_token'?tokens.get(body.refresh_token):identities.find(u=>u.email===body.email&&body.password==='Test-only-password-42');return u?send(res,200,session(u)):send(res,400,{error:'invalid_grant',error_description:'Invalid login credentials'});}
    if(path.endsWith('/user'))return who?send(res,200,user(who)):send(res,401,{message:'Invalid session'});
@@ -56,11 +65,13 @@ const server=http.createServer(async(req,res)=>{
    return send(res,200,result.rows[0].value);
   }
   if(path.startsWith('/rest/v1/')) {
-   const table=path.split('/').pop();if(!/^(cpw|cpp)_[a-z0-9_]+$/.test(table)||req.method!=='GET')return send(res,404,{});
-   let sql=`select * from public.${table}`;const clauses=[];const args=[];
+   const table=path.split('/').pop();if(!/^(cpw|cpp)_[a-z0-9_]+$/.test(table)||!['GET','PATCH'].includes(req.method))return send(res,404,{});
+   const clauses=[];const args=[];let sql=`select * from public.${table}`;
+   if(req.method==='PATCH'){const body=JSON.parse((await read(req)).toString());const keys=Object.keys(body);if(!keys.length||keys.some(key=>!(/^[a-z_]+$/).test(key)))throw Error('Invalid test update');sql=`update public.${table} set `+keys.map(key=>{args.push(typeof body[key]==='object'&&body[key]!==null?JSON.stringify(body[key]):body[key]);return `${key}=$${args.length}`;}).join(',');}
    for(const [key,value]of url.searchParams){if(['select','order','limit','offset'].includes(key))continue;if(!/^[a-z_]+$/.test(key))throw Error('Invalid test query');if(value.startsWith('eq.')){args.push(value.slice(3));clauses.push(`${key}=$${args.length}`);}else throw Error('Unsupported test filter');}
    if(clauses.length)sql+=' where '+clauses.join(' and ');
-   if(url.searchParams.has('order')){const[column,direction]=url.searchParams.get('order').split('.');if(!/^[a-z_]+$/.test(column))throw Error('Invalid order');sql+=` order by ${column} ${direction==='desc'?'desc':'asc'}`;}
+   if(req.method==='PATCH')sql+=' returning *';
+   if(req.method==='GET'&&url.searchParams.has('order')){const[column,direction]=url.searchParams.get('order').split('.');if(!/^[a-z_]+$/.test(column))throw Error('Invalid order');sql+=` order by ${column} ${direction==='desc'?'desc':'asc'}`;}
    const result=await serial(who,()=>db.query(sql,args));
    if((req.headers.accept||'').includes('vnd.pgrst.object')){if(result.rows.length!==1)return send(res,406,{code:'PGRST116',message:'Record unavailable'});return send(res,200,result.rows[0]);}
    return send(res,200,result.rows);

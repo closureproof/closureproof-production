@@ -4,7 +4,7 @@
 
 ClosureProof is a public pilot for submitting audit findings, uploading corrective-action evidence and recording structured reviews. The application uses Next.js App Router, React and TypeScript. Supabase PostgreSQL RPCs and Storage persist the records and evidence; PDF reports are generated in the browser. The repository uses npm workspaces and Turborepo to coordinate development, builds and checks.
 
-The pilot has no sign-in, protected routes, assigned roles or enforced reviewer-account separation. Everyone using the app shares the pilot workspace. Reviewer names and independence declarations are self-reported. No audit verdict, compliance score, AI assessment or readiness engine is generated.
+The pilot has no sign-in, protected routes, assigned roles or enforced reviewer-account separation. Everyone using the app shares the pilot workspace. Reviewer names and independence declarations are self-reported. Readiness recommendations remain reviewer-selected. Optional OpenAI document extraction prepares draft findings and cited evidence facts; it does not issue audit verdicts, compliance scores or closure approval. A readiness rules engine is not implemented.
 
 ## Architecture and repository structure
 
@@ -48,7 +48,7 @@ Earlier `cp_*` and `cpw_*` tables, functions and files are preserved. They are n
 ## Manual workflow
 
 - Record the finding, owner, source scope, affected resources, root cause and corrective action. AWS IAM is one optional review protocol; submission is generic.
-- Upload PDF, PNG, JPG, CSV, JSON or TXT evidence with source metadata. Limits: 25 MB per file, 30 files / 250 MB per finding. Files are unscanned and shared with pilot users.
+- Upload PDF, DOCX, PNG, JPG, CSV, JSON or TXT evidence with source metadata. Limits: 25 MB per file, 30 files / 250 MB per finding. Files are unscanned and shared with pilot users.
 - Inspect text and image previews or download originals. PDF originals are download-only.
 - Open a queue entry directly in its reviewer workspace; evidence inspection and judgements are available there, while uploads remain on the submission/finding page.
 - Enter the reviewer name, protocol observations and detailed closure judgements: scope and evidence requirements, root cause/action effectiveness, population coverage, exceptions, operating history/deadlines, retest and outstanding follow-up. Expanded judgements are retained in review snapshots and history.
@@ -56,6 +56,30 @@ Earlier `cp_*` and `cpw_*` tables, functions and files are preserved. They are n
 - Finding/evidence changes create new revisions. Earlier review snapshots remain in history; the dashboard uses only published or completed recommendations against the current revision.
 
 Completing a review does not formally close a finding or certify an organisation. The workbook’s indicative mappings and category mappings still need qualified review. Spreadsheet import/export and live provider integrations remain future work.
+
+## Optional AI document extraction
+
+The submission page supports **Upload audit report** alongside manual entry. OpenAI reads a PDF/DOCX and proposes separate finding drafts. Users check the source, correct missing details, select scope and explicitly confirm each submission. The original audit report is source context, not remediation evidence.
+
+Within a review, **Prepare review from evidence** reads current PDF/DOCX attachments that have not been extracted yet, then uses OpenAI to map their extracted facts to the finding’s pinned checklist, structured judgements and category-specific engine fields. The draft carries filenames, evidence IDs, source locations and rationale. **Use draft in review** populates the editable form and evaluates the draft through the rules engine. Reviewers correct proposals, resolve missing information, and accept or justify an override before completing the review. AI never selects the readiness recommendation or formal closure decision.
+
+**Analyse submitted documents** remains available for inspecting and correcting individual extracted facts. Preparation uses the latest current-version extraction for each eligible document, including saved corrections and exclusions. Unreadable or unsupported evidence is not silently treated as assessed. Missing information stays unknown; conflicts prevent the proposed draft from establishing successful results automatically. Completed snapshots and reports retain adopted facts and exact evidence versions.
+
+Documents go directly to OpenAI’s Responses file-input API; no custom PDF/DOCX text extractor is used. Application code validates file signatures/package metadata and structured output. Source quotations/pages/sections are AI-proposed and require checking against the original; they are not independently machine-verified citations. DOCX references use sections/paragraphs rather than page numbers. Scanned/image-only documents are not a supported guarantee.
+
+Apply `supabase/migrations/20261111000100_ai_document_extraction.sql` after the earlier active migrations. It adds extraction history, DOCX MIME support, append-only fact decisions, idempotent confirmed-draft submissions and completion validation. Historical private records remain untouched. Configure these **server-only** values in `apps/web/.env.local` or the hosting environment:
+
+```dotenv
+AI_EXTRACTION_ENABLED=true
+OPENAI_API_KEY=your-server-api-key
+SUPABASE_SERVICE_ROLE_KEY=your-server-supabase-service-key
+OPENAI_EXTRACTION_MODEL=gpt-4.1-mini
+AI_EXTRACTION_DAILY_LIMIT=20
+```
+
+Never use a `NEXT_PUBLIC_` prefix for these secrets. The service key is elevated and used only by server routes; it is not the public browser key. Sources upload directly to signed paths in the existing Supabase bucket, avoiding large file bodies through Next.js endpoints. Analysis has persistent daily start/call caps, a processing lease, three explicitly requested attempts maximum and no automatic provider retry. Retried or interrupted calls may still be billed. `store:false` does not assert zero provider retention.
+
+A missing migration, disabled feature, unavailable key or processing failure leaves manual submission/review available. Default tests use synthetic documents and deterministic provider fixtures; they do not establish model accuracy. An explicit, uncached provider smoke check is available with `RUN_AI_LIVE_SMOKE=1 npm run test --workspace @closureproof/web -- src/lib/server/document-analysis.live.test.ts`; it sends only the small synthetic PDF/DOCX fixtures to the configured OpenAI account and creates no live workspace records. Provider keys are not configured by committing code. ClosureProof’s output is a readiness recommendation and evidence pack for an external closure decision.
 
 ## Completed reviews and follow-up
 
@@ -69,7 +93,7 @@ Return for Remediation and Request retest record actions, owners and evidence ex
 
 ## Workspace sections
 
-“See how it works” opens `/app` directly. `/dashboard.html`, `/preview` and `/workbench` remain aliases. The original dashboard design and sidebar destinations are retained: overview, findings, evidence library, manual upload, closure protocols, reviewer queue, decision history, closure packs, integrations, participants and organisation settings.
+Public “See how it works” and demo actions open `/request-demo`. Public pages do not link into the workspace. `/app` remains available by direct URL, with noindex metadata; `/dashboard.html`, `/preview` and `/workbench` are retired and return not found. This reduces discovery without enforcing access permissions. The original dashboard design and sidebar destinations are retained: overview, findings, evidence library, manual upload, closure protocols, reviewer queue, decision history, closure packs, integrations, participants and organisation settings.
 
 Dashboard counts, finding rows and recent activity come from saved pilot submissions. Records refresh after mutations, on focus and periodically. No sample findings or automatic scores populate the interface.
 
@@ -166,3 +190,39 @@ Judgement version 2 removes duplicate population, exception, operating-history a
 
 
 Judgement version 3 begins with explicit reviewer decisions. Scope/evidence and cause/action use short assessment choices; satisfactory decisions do not require invented gap narratives. Population, operating history and independent retest start with **Required**, **Not required** or **Not yet established**. The last two require a reason; detailed fields appear only for Required assessments. Exceptions distinguish none, identified exceptions and an unknown position. Follow-up and limitations reveal their narrative fields only when relevant. No choice is inferred from checklist implementation statuses. Completion removes inactive details from the snapshot; reports show the saved decisions and reasons rather than blank or passed sections. Version 3 uses report template 1.2. Versions 1 and 2 remain supported for historical records and earlier clients.
+
+### Rules-supported assessments
+
+All ten categories support source-backed engine inputs alongside the pinned checklist. Inputs may be entered directly or adopted from an AI-prepared draft. Reviewers accept the computed recommendation or record a justified override with supporting evidence. All current protocols are candidates awaiting independent validation. No universal operating period is assumed.
+
+`@closureproof/assessment-engine` contains the evaluator and category protocols. Next.js `/api/assessments/evaluate` and `/complete` recompute assessments using the server-only Supabase service key. Apply `20261111000200_rules_supported_assessment.sql` after the extraction migration. Completion compares the current basis transactionally, preserves one immutable assessment, and preserves the assessment trace in the applicable report template. Saved PDFs/ZIP manifests include the rule trace and reviewer disposition. Completion never issues final closure approval. The protocol registry is server-controlled; it has no public authoring endpoint.
+
+`npm run test:db` includes the engine completion contract. Browser tests use an isolated fake service-role credential, never a real project credential or OpenAI call.
+
+
+## Checklist-linked AWS IAM assessment
+
+Current AWS IAM engine version `0.3.0-checklist-candidate` maps the finding's pinned ISO task IDs into closure requirements through `@closureproof/assessment-engine/checklist-mapping`. Only scoped checklist items are evaluated; unrecognised mappings remain unknown. Implemented requires applicability Yes, rationale and current evidence/source references to satisfy a checklist requirement. Partial/not implemented remains unmet; unassessed remains unknown; explicit justified No/Not applicable remains excluded. Checklist satisfaction never replaces cause/effectiveness/coverage/retest judgements. Reviewers may explicitly reuse mapped checklist evidence without auto-confirming qualitative answers.
+
+Evaluation and completion consume the same current checklist answers and pin mapping policy/version, checklist input and trace in snapshots/reports/ZIPs. Checklist edits invalidate the preview. `20261111000300_checklist_linked_engine.sql` permits the new immutable version without rewriting 0.1 definitions or historical completed assessments. All category integrations retain their own pinned mappings; independent validation remains pending.
+
+
+## All-category rules-supported assessments
+
+All ten existing categories now support the same rules-supported workflow: AWS IAM, access reviews, joiner/mover/leaver access, MFA, vulnerability/patch remediation, backup restoration, supplier review, logging/monitoring, change management and incident response. Select **Rules-supported … assessment**, or adopt an AI-prepared review draft. The saved finding category selects the server protocol; each category has its own explicit ISO task mappings, evidence guidance and additional closure judgements. Manual recommendations remain available.
+
+`packages/assessment-engine/src/protocol-catalogue.ts` is the category catalogue. New nine-category protocols use `0.1.0-checklist-candidate`; AWS IAM uses `0.3.0-checklist-candidate` to extend configured-control coverage without changing its stored older definitions. All methods await independent validation. Timing requirements remain reviewer-entered; no universal ISO period or audit score is introduced.
+
+Apply `20261111000400_all_protocol_engines.sql` after the earlier engine migrations. It extends the server-only registration/completion RPCs and report template 1.5 while preserving existing assessments and report files. Unknown/unmapped/unsupported facts cannot produce computed closure readiness. Completion, reports, resubmission and recorded external decisions continue through the existing workflow. This completes category-engine integration, not independent method validation or unrelated business-plan features such as spreadsheet import and client isolation.
+
+## AI-assisted review preparation
+
+The review has three steps: **Evidence & checklist**, **Gaps & exceptions**, and **Recommendation & report**. AI preparation fills these existing fields; the reviewer handles corrections, uncertain evidence and final disposition. One conclusion and one set of next actions feed the completed assessment and report. Reviewer identity, independence, scope confirmation, risk acceptance and final approval are never invented by AI.
+
+Apply `20261111000500_ai_review_preparation.sql` after the existing migrations. It adds private, immutable `cpp_ai_review_proposals` with durable processing leases, bounded explicit retries and the existing shared AI quota. `/api/assessments/propose` uses [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) against exact pinned IDs, typed values and cited extracted-fact keys. Unsupported references or invalid output cannot populate the form. Unchanged source/model inputs reuse a completed preparation; changed evidence, scope or extracted facts invalidate its source fingerprint before completion.
+
+Drafts remain separate from completed assessments. Adoption and edits are saved in review JSON; completed engine assessments pin the private proposal’s hash, model, source fingerprint and limitations. PDFs include this preparation history and the confirmed evidence references. The existing assessment limit is 20 cited extracted facts; the preparation input is bounded and reports gaps rather than silently truncating evidence. Manual review remains available if extraction or preparation fails.
+
+Contract tests use an isolated local provider fixture, guarded by a fake service credential and fixed test database URL. They verify software behaviour, not real-model accuracy. No live customer records are used by these tests.
+
+An opt-in provider contract check is available with `RUN_AI_REVIEW_LIVE_SMOKE=1 npm run test --workspace @closureproof/web -- src/lib/server/ai-review-preparation.live.test.ts`. It sends a small synthetic extracted-fact set to the configured OpenAI model and writes no Supabase records. A successful smoke check establishes API/schema compatibility, not assessment-method validation or model accuracy on customer evidence.

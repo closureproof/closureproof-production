@@ -44,19 +44,18 @@ test('completed assessment survives PDF failure; corrected review, rejection, re
   await (await firstDownload).saveAs(test.info().outputPath('insufficient-report.pdf'));
   await page.getByRole('button', { name: 'Create assessment revision', exact: true }).click();
   const form = page.locator('[data-review-form]');
-  await page.getByRole('navigation', { name: 'Review steps', exact: true }).getByRole('button', { name: /ClosureProof reviewer judgement/ }).click();
+  await page.getByRole('navigation', { name: 'Review steps', exact: true }).getByRole('button', { name: /Gaps & exceptions/ }).click();
   await form.getByLabel('Scope and evidence assessment',{exact:true}).selectOption('Sufficient for this finding');
   await form.getByLabel('Root cause and corrective-action assessment',{exact:true}).selectOption('Supported');
   for(const [label,reasonLabel]of [['Is population coverage review needed?','Reason for the population-review decision'],['Is operating-history review needed?','Reason for the operating-history decision'],['Is an independent retest needed?','Reason for the retest decision']]){
     await form.getByLabel(label,{exact:true}).selectOption('Not required');
     await form.getByLabel(reasonLabel,{exact:true}).fill('The documentary correction does not need this additional review; the assessed scope is recorded.');
   }
-  await page.getByRole('navigation', { name: 'Review steps', exact: true }).getByRole('button', { name: /Conclusion & recommendation/ }).click();
+  await page.getByRole('navigation', { name: 'Review steps', exact: true }).getByRole('button', { name: /Recommendation & report/ }).click();
   await form.getByLabel('Is follow-up required?',{exact:true}).selectOption('None required');
   await form.getByLabel('Are there limitations or judgement overrides?',{exact:true}).selectOption('None identified');
-  await form.getByLabel('Reviewer conclusion', { exact: true }).fill('The documented limitations and exceptions have been assessed; corrected recommendation recorded.');
+  await form.getByLabel('Review conclusion and rationale', { exact: true }).fill('The documented limitations and exceptions have been assessed; corrected recommendation recorded.');
   await form.getByLabel('Reviewer recommendation (manually selected)', { exact: true }).selectOption('Closure ready');
-  await form.getByLabel('Recommendation rationale', { exact: true }).fill('The reviewer has documented and justified the remaining limitations in the assessment.');
   await form.getByRole('button', { name: 'Save review draft', exact: true }).click();
   await expect(form).toBeVisible();
   await form.getByRole('button', { name: 'Complete Review', exact: true }).click();

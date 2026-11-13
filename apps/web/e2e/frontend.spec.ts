@@ -1,8 +1,13 @@
 import { test, expect } from '@playwright/test';
-test('public dashboard entry opens the working dashboard without sign-in', async ({ page }) => {
-  await page.goto('/'); await page.getByRole('link', { name: 'See how it works' }).click();
-  await expect(page.getByRole('heading', { name: 'Closure overview' })).toBeVisible();
-  await expect(page.getByText(/CP-1042/)).toHaveCount(0);
+test('public walkthrough opens the demo form; workspace remains direct-only', async ({ page }) => {
+ await page.goto('/');
+ await expect(page.locator('a[href^="/app"], a[href^="/preview"], a[href^="/workbench"], a[href^="/dashboard.html"]')).toHaveCount(0);
+ await page.getByRole('link',{name:'See how it works',exact:true}).click();
+ await expect(page).toHaveURL(/\/request-demo$/);
+ await expect(page.getByRole('heading',{name:'Request demo',exact:true})).toBeVisible();
+ await expect(page.locator('a[href^="/app"], a[href^="/dashboard.html"]')).toHaveCount(0);
+ await page.goto('/app');await expect(page.getByRole('heading',{name:'Closure overview',exact:true})).toBeVisible();
+ await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
 });
 
 test('request demo collects contact details without exposing a sign-in flow', async ({ page, isMobile }) => {

@@ -10,20 +10,26 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "next typegen && tsc --noEmit",
-    "test:db": "node scripts/test-supabase-sql.mjs && node scripts/test-supabase-legacy.mjs && node scripts/test-public-pilot.mjs && node scripts/test-iso27001.mjs && node scripts/test-review-workflow.mjs && node scripts/test-control-scopes.mjs && node scripts/test-simplified-judgement.mjs && node scripts/test-conditional-judgement.mjs",
+    "test:db": "node scripts/test-supabase-sql.mjs && node scripts/test-supabase-legacy.mjs && node scripts/test-public-pilot.mjs && node scripts/test-iso27001.mjs && node scripts/test-review-workflow.mjs && node scripts/test-control-scopes.mjs && node scripts/test-simplified-judgement.mjs && node scripts/test-conditional-judgement.mjs && node scripts/test-ai-extraction.mjs && node scripts/test-assessment-engine.mjs && node scripts/test-ai-review-preparation.mjs && node scripts/test-review-requests.mjs",
     "check:supabase": "node scripts/check-supabase.mjs",
     "start": "next start --hostname 127.0.0.1"
   },
   "dependencies": {
+    "@closureproof/assessment-engine": "*",
+    "@closureproof/document-contracts": "*",
     "@supabase/supabase-js": "^2.119.0",
+    "docx-preview": "^0.4.1",
     "fflate": "^0.8.3",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
     "next": "^16.4.6",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@closureproof/typescript-config": "*",
     "@electric-sql/pglite": "^0.5.15",
     "@playwright/test": "^1.56.0",
     "@tailwindcss/postcss": "^4.3.5",
@@ -35,12 +41,11 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^26.1.0",
+    "react-router": "^7.9.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.9.0",
     "vite": "^7.2.0",
-    "vitest": "^5.1.0",
-    "react-router": "^7.9.0",
-    "@closureproof/typescript-config": "*"
+    "vitest": "^5.1.0"
   },
   "engines": {
     "node": ">=20.9.0"

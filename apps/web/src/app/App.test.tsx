@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { App } from '../test-support/LegacyRouterHarness';
 function show(path: string) { return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>); }
-it('opens dashboard aliases without sign-in or dummy data', async () => {
-  show('/dashboard.html');
+it('opens the dashboard directly without sign-in or dummy data', async () => {
+  show('/app');
   expect(await screen.findByRole('navigation', { name: 'Workspace navigation' })).toBeInTheDocument();
   expect(screen.queryByText(/CP-1042/)).not.toBeInTheDocument();
 });
@@ -18,7 +18,7 @@ it('keeps request-demo separate from workspace authentication', () => {
   expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
 });
 it('does not use sample records when Supabase is unconfigured', async () => {
-  show('/preview');
+  show('/app');
   expect(await screen.findByRole('navigation', { name: 'Workspace navigation' })).toBeInTheDocument();
   expect(screen.queryByText(/CP-1042/)).not.toBeInTheDocument();
 });
@@ -64,4 +64,13 @@ it('treats an HTML fallback as failure rather than a submitted demo request', as
   show('/request-demo'); await fillDemoForm();
   expect(await screen.findByRole('alert')).toHaveTextContent('couldn’t confirm');
   expect(screen.queryByText('Demo request received')).not.toBeInTheDocument();
+});
+
+it.each(['/dashboard.html','/preview','/workbench'])('retires the old workspace alias %s', async path=>{
+ show(path);expect(await screen.findByRole('heading',{name:'Page not found'})).toBeInTheDocument();expect(screen.queryByRole('navigation',{name:'Workspace navigation'})).not.toBeInTheDocument();
+});
+it('sends the public walkthrough to the enquiry form',async()=>{
+ const user=userEvent.setup();show('/');
+ const walkthrough=screen.getByRole('link',{name:'See how it works'});expect(walkthrough).toHaveAttribute('href','/request-demo');
+ await user.click(walkthrough);expect(await screen.findByRole('heading',{name:'Request demo'})).toBeInTheDocument();expect(screen.queryByRole('link',{name:'Explore the sample walkthrough'})).not.toBeInTheDocument();
 });

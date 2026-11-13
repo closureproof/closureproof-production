@@ -20,7 +20,7 @@ it('retains fields across steps and saves one draft with data from all three pan
  await user.selectOptions(screen.getByLabelText('Scope and evidence assessment'),'Gaps identified');
  await user.type(screen.getByLabelText('Scope completeness judgement'),'Scope recorded on the judgement step.');
  await user.click(screen.getByRole('button',{name:'Next'}));
- await user.type(screen.getByLabelText('Reviewer conclusion'),'Recorded conclusion retained across steps.');
+ await user.type(screen.getByLabelText('Review conclusion and rationale'),'Recorded conclusion retained across steps.');
  await user.click(screen.getByRole('button',{name:'Back'}));
  expect(screen.getByLabelText('Scope completeness judgement')).toHaveValue('Scope recorded on the judgement step.');
  await user.click(screen.getByRole('button',{name:'Save review draft'}));
@@ -38,6 +38,6 @@ it('allows Next with untouched checks and routes a hidden required field back to
  expect(screen.getByRole('alert')).toHaveTextContent('Check the highlighted field');
  expect(screen.getByLabelText('Reviewer',{exact:true})).toBeVisible();
  const steps=screen.getByRole('navigation',{name:'Review steps'});
- expect(within(steps).getByRole('button',{name:/Checklist/})).toHaveAttribute('aria-current','step');
+ expect(within(steps).getByRole('button',{name:/Evidence & checklist/})).toHaveAttribute('aria-current','step');
  expect(complete).not.toHaveBeenCalled();
 });
