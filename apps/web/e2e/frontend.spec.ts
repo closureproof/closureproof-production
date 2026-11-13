@@ -10,7 +10,7 @@ test('public walkthrough opens the demo form; workspace remains direct-only', as
  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
 });
 
-test('request demo collects contact details without exposing a sign-in flow', async ({ page, isMobile }) => {
+test('request demo saves contact details in Supabase without exposing a sign-in flow', async ({ page, request }) => {
   await page.goto('/request-demo');
   await expect(page).toHaveURL(/request-demo$/);
   await page.getByRole('button', { name: 'Request demo' }).click();
@@ -23,9 +23,13 @@ test('request demo collects contact details without exposing a sign-in flow', as
   await page.getByLabel('Contact phone (optional)').fill('+44 20 0000 0000');
   await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: 'Request demo' }).click();
-  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText('Your details have not been sent');
-  await expect(page.getByLabel('Your email')).toHaveValue('jamie@example.test');
+  await expect(page.getByText('Request sent',{exact:true})).toBeVisible();
+  const saved=await request.get('http://127.0.0.1:54330/rest/v1/demo_requests?email=eq.jamie%40example.test',{headers:{apikey:'test_service_role_fixture_only',authorization:'Bearer test_service_role_fixture_only'}});
+  expect(saved.ok()).toBeTruthy();const rows=await saved.json();expect(rows.some((row:any)=>row.company_name==='Example Ltd'&&row.contact_person==='Taylor Contact')).toBe(true);
+  const anonymous=await request.get('http://127.0.0.1:54330/rest/v1/demo_requests',{headers:{apikey:'sb_publishable_test_only'}});expect(anonymous.status()).toBe(403);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  await expect(page).toHaveURL(/\/$/,{timeout:6000});
+  await expect(page.getByRole('link',{name:'See how it works',exact:true})).toBeVisible();
 });
 
 test('provider carousel moves, pauses and honours reduced motion', async ({ page }) => {

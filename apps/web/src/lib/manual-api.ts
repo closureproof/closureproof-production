@@ -128,7 +128,8 @@ export const manualApi = {
     try {
       const { error } = await getSupabase().storage.from('closureproof-pilot-evidence').upload(upload.path, bytes, { contentType: mime, upsert: false });
       if (error) throw error;
-      await rpc('cpp_finalize_upload', { p_id: upload.id, p_revision: metadata.revision });
+      const completed = await fetch('/api/evidence/complete', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:upload.id,revision:metadata.revision})});
+      if (!completed.ok) {const body=await completed.json().catch(()=>null);throw new Error(body?.error||'Evidence validation could not be completed. Please try again.');}
     } catch (error) {
       try { const cleanup = await getSupabase().storage.from('closureproof-pilot-evidence').remove([upload.path]); if (!cleanup.error) await rpc('cpp_cancel_upload', { p_id: upload.id }); } catch { /* Pending private records remain unavailable; no successful upload is claimed. */ }
       throw error;

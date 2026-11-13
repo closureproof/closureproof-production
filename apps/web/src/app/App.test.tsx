@@ -46,24 +46,23 @@ it('shows the full submission form without an account', async () => {
   expect(screen.queryByText(/current role cannot|uploads and saved reviews are unavailable/i)).not.toBeInTheDocument();
 });
 it('keeps form details and reports unconfigured delivery without claiming success', async () => {
-  vi.stubEnv('NEXT_PUBLIC_DEMO_REQUEST_URL', ''); show('/request-demo'); await fillDemoForm();
-  expect(await screen.findByRole('alert')).toHaveTextContent('Your details have not been sent');
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response('{}',{status:503,headers:{'content-type':'application/json'}}))); show('/request-demo'); await fillDemoForm();
+  expect(await screen.findByRole('alert')).toHaveTextContent('couldn’t send');
   expect(screen.getByLabelText('Your name')).toHaveValue('Jamie Test');
-  expect(screen.queryByText('Demo request received')).not.toBeInTheDocument();
+  expect(screen.queryByText('Request sent')).not.toBeInTheDocument();
 });
 it('sends all contact fields and shows success only after endpoint acceptance', async () => {
-  vi.stubEnv('NEXT_PUBLIC_DEMO_REQUEST_URL', 'https://example.test/demo');
   const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ accepted: true }), { status: 201, headers: { 'content-type': 'application/json' } }));
   vi.stubGlobal('fetch', fetcher); show('/request-demo'); await fillDemoForm();
-  expect(await screen.findByText('Demo request received')).toBeInTheDocument();
-  expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ name: 'Jamie Test', email: 'jamie@example.test', companyName: 'Example Ltd', contactPerson: 'Taylor Contact', contactEmail: 'taylor@example.test', contactPhone: '+44 20 0000 0000' });
+  expect(await screen.findByText('Request sent')).toBeInTheDocument();
+  expect(fetcher.mock.calls[0][0]).toBe('/api/demo-requests');
+  expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ website:'', requestId:expect.any(String), name: 'Jamie Test', email: 'jamie@example.test', companyName: 'Example Ltd', contactPerson: 'Taylor Contact', contactEmail: 'taylor@example.test', contactPhone: '+44 20 0000 0000' });
 });
 it('treats an HTML fallback as failure rather than a submitted demo request', async () => {
-  vi.stubEnv('NEXT_PUBLIC_DEMO_REQUEST_URL', 'https://example.test/demo');
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<html>fallback</html>', { status: 200, headers: { 'content-type': 'text/html' } })));
   show('/request-demo'); await fillDemoForm();
   expect(await screen.findByRole('alert')).toHaveTextContent('couldn’t confirm');
-  expect(screen.queryByText('Demo request received')).not.toBeInTheDocument();
+  expect(screen.queryByText('Request sent')).not.toBeInTheDocument();
 });
 
 it.each(['/dashboard.html','/preview','/workbench'])('retires the old workspace alias %s', async path=>{

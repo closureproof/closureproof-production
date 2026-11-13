@@ -37,7 +37,10 @@ await db.exec(await fs.readFile(new URL('../../../supabase/migrations/2026111100
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261111000400_all_protocol_engines.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261111000500_ai_review_preparation.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261112000100_review_requests.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261113000100_demo_request_notifications.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261113000200_request_security.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/tests/ai_extraction_fixture.sql',import.meta.url),'utf8'));
+await db.exec('grant usage on schema storage to service_role; grant select on storage.objects to service_role;');
 const objects = new Map(); const tokens = new Map();
 const user = u => ({id:u.id,aud:'authenticated',role:'authenticated',email:u.email,email_confirmed_at:new Date().toISOString(),confirmed_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:u.name},identities:[],created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
 function session(u) { const enc=o=>Buffer.from(JSON.stringify(o)).toString('base64url'); const token=enc({alg:'HS256',typ:'JWT'})+'.'+enc({sub:u.id,email:u.email,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600,iat:Math.floor(Date.now()/1000),session_id:crypto.randomUUID()})+'.test-signature'; tokens.set(token,u); return {access_token:token,refresh_token:token,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,user:user(u)}; }
@@ -58,14 +61,14 @@ const server=http.createServer(async(req,res)=>{
    return send(res,404,{message:'Auth operation unsupported by test fixture'});
   }
   if(path.startsWith('/rest/v1/rpc/')) {
-   const name=path.split('/').pop();if(!/^(cpw|cpp)_[a-z0-9_]+$/.test(name))return send(res,404,{});
+   const name=path.split('/').pop();if(!/^(cpw|cpp)_[a-z0-9_]+$/.test(name)&&!/^demo_(save_request|claim_notification|finish_notification)$/.test(name))return send(res,404,{});
    const body=JSON.parse((await read(req)).toString()||'{}');const keys=Object.keys(body);if(keys.some(k=>!/^p_[a-z0-9_]+$/.test(k)))return send(res,400,{});
    const sql=`select public.${name}(${keys.map((key,i)=>`${key} => $${i+1}`).join(',')}) as value`;
    const result=await serial(who,()=>db.query(sql,keys.map(k=>typeof body[k]==='object'&&body[k]!==null&&!Array.isArray(body[k])?JSON.stringify(body[k]):body[k])));
    return send(res,200,result.rows[0].value);
   }
   if(path.startsWith('/rest/v1/')) {
-   const table=path.split('/').pop();if(!/^(cpw|cpp)_[a-z0-9_]+$/.test(table)||!['GET','PATCH'].includes(req.method))return send(res,404,{});
+   const table=path.split('/').pop();if((!/^(cpw|cpp)_[a-z0-9_]+$/.test(table)&&table!=='demo_requests')||!['GET','PATCH'].includes(req.method))return send(res,404,{});
    const clauses=[];const args=[];let sql=`select * from public.${table}`;
    if(req.method==='PATCH'){const body=JSON.parse((await read(req)).toString());const keys=Object.keys(body);if(!keys.length||keys.some(key=>!(/^[a-z_]+$/).test(key)))throw Error('Invalid test update');sql=`update public.${table} set `+keys.map(key=>{args.push(typeof body[key]==='object'&&body[key]!==null?JSON.stringify(body[key]):body[key]);return `${key}=$${args.length}`;}).join(',');}
    for(const [key,value]of url.searchParams){if(['select','order','limit','offset'].includes(key))continue;if(!/^[a-z_]+$/.test(key))throw Error('Invalid test query');if(value.startsWith('eq.')){args.push(value.slice(3));clauses.push(`${key}=$${args.length}`);}else throw Error('Unsupported test filter');}

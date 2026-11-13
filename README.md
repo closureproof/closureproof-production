@@ -101,7 +101,7 @@ The public pilot permits anyone using the app to read, submit, edit and manually
 
 ## Public website
 
-Navy/blue/white branding and rounded controls remain. Demo enquiries use `NEXT_PUBLIC_DEMO_REQUEST_URL` and the separate [demo-request migration](supabase/migrations/20261105000100_create_demo_requests.sql). The survey opens Google Forms in a new tab. Providers remain **Planned integration**; only their logos scroll, with hover/focus pause and reduced-motion support.
+Navy/blue/white branding and rounded controls remain. Demo enquiries use the built-in `/api/demo-requests` route and the server-only Supabase client to save `demo_requests`. Apply [the enquiry/notification migration](supabase/migrations/20261113000100_demo_request_notifications.sql); it supports existing tables and adds notification tracking. The obsolete `NEXT_PUBLIC_DEMO_REQUEST_URL` is no longer used. The survey opens Google Forms in a new tab. Providers remain **Planned integration**; only their logos scroll, with hover/focus pause and reduced-motion support.
 
 ## Workspace commands and validation
 
@@ -137,7 +137,7 @@ Keep one root lockfile; do not create application-level lockfiles or install dep
 
 Turbo caches production builds and unit tests locally. Build hashes include the declared public environment values, application `.env*` files and shared TypeScript configuration. Next.js runtime output is retained, while `.next/cache` and `.next/dev` are excluded from build artifacts. Development servers, production servers, type checks, database checks, browser tests and live schema checks are not cached. Remote caching is not configured.
 
-Environment files, `.next`, `node_modules` and `.turbo` stay ignored. Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or `NEXT_PUBLIC_SUPABASE_ANON_KEY`) and optional `NEXT_PUBLIC_DEMO_REQUEST_URL` for the web application. Legacy `VITE_*` equivalents remain supported by `next.config.ts` during migration. Public values are included in the browser build; never place service-role credentials or database passwords in them. Rebuild after changing public deployment values.
+Environment files, `.next`, `node_modules` and `.turbo` stay ignored. Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or `NEXT_PUBLIC_SUPABASE_ANON_KEY`) for the web application. Legacy `VITE_*` equivalents remain supported by `next.config.ts` during migration. Public values are included in the browser build; never place service-role credentials or database passwords in them. Rebuild after changing public deployment values.
 
 ### Validation boundaries
 
@@ -226,3 +226,25 @@ Drafts remain separate from completed assessments. Adoption and edits are saved 
 Contract tests use an isolated local provider fixture, guarded by a fake service credential and fixed test database URL. They verify software behaviour, not real-model accuracy. No live customer records are used by these tests.
 
 An opt-in provider contract check is available with `RUN_AI_REVIEW_LIVE_SMOKE=1 npm run test --workspace @closureproof/web -- src/lib/server/ai-review-preparation.live.test.ts`. It sends a small synthetic extracted-fact set to the configured OpenAI model and writes no Supabase records. A successful smoke check establishes API/schema compatibility, not assessment-method validation or model accuracy on customer evidence.
+
+## Demo enquiries and admin email
+
+The demo form posts to `/api/demo-requests`. Server validation and a stable request ID protect retry handling. Supabase persistence succeeds before notification is attempted; email failure never discards a saved enquiry. Contact rows have no public read/write grants.
+
+Configure these server-only values locally and in Vercel: `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `DEMO_NOTIFICATION_FROM` (a sender on a domain verified in Resend), `DEMO_ADMIN_EMAIL` (the recipient), and `DEMO_NOTIFICATION_RETRY_TOKEN` (a long random secret). Supabase URL uses the existing public setting. Local configuration is `apps/web/.env.local`; the application template is `apps/web/.env.example`.
+
+`demo_requests.notification_status` records pending/sending/sent/failed, attempts and errors. Sent means the email provider accepted the message, not confirmed inbox delivery. Missing mail configuration leaves the notification pending.
+
+For a manual retry, POST to `/api/admin/demo-notifications/retry` with `Authorization: Bearer <DEMO_NOTIFICATION_RETRY_TOKEN>`. This protected server endpoint handles up to ten pending/failed/expired-lease notifications, with a five-attempt limit and provider idempotency keys. It is not a public workspace control. No automatic scheduler is installed; retry can be invoked by the operator. Enquiries remain visible to authorised Supabase project administrators if email is unavailable.
+
+`npm run test:db` includes fresh/existing demo-table installation, public-access refusal, request idempotency, mail leases and retry checks. Email unit tests use a fake provider; do not send real mail from browser fixtures.
+
+## Request and upload protection
+
+Apply `supabase/migrations/20261113000200_request_security.sql` before deploying the request-hardening changes. Server endpoints fail closed if their budget RPC is unavailable. Existing workspace routes remain public; these controls do not add authentication or isolate customer records.
+
+Request bodies are checked while streaming, JSON content types are required, and same-origin checks reject browser cross-site writes. Shared PostgreSQL budgets cap demo submissions (10 per client/hour, 100 globally/hour), analysis reads (180/client/minute, 1,200 globally/minute), analysis writes (20/client/10 minutes, 100 globally), assessments (60/client/minute, 300 globally), and upload validation (60/client/10 minutes, 300 globally). Vercel's client-IP header is hashed with a server secret; raw IPs are not stored. Other hosts use a shared client bucket until a trusted proxy integration is configured. Counters are cleaned up when requests arrive. Fixed windows and honeypot filtering reduce abuse; they are not a guarantee against distributed attacks or sophisticated bots.
+
+Evidence stays pending until `/api/evidence/complete` downloads and validates its stored size, checksum and allowed content format, then invokes the service-only finalisation RPC. Direct browser finalisation is denied. DOCX archive safety checks run on the server. Format validation is not antivirus scanning; no malware-scanning provider is configured. Existing historical evidence is not retrospectively certified. Public upload allocation/storage quotas remain enforced by existing RPC and bucket policies.
+
+Global response headers restrict framing, object embedding, form destinations, MIME sniffing, referrer disclosure and device permissions. The CSP is deliberately a baseline compatible with Next.js and document previews, not a claim of comprehensive XSS prevention. Use `npm run test:db` for the isolated permission/budget checks. Hosting firewall configuration and live penetration testing remain separate deployment checks.

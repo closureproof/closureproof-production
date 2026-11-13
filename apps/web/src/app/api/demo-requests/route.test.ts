@@ -1,0 +1,13 @@
+import {afterEach,expect,it,vi} from 'vitest';
+vi.mock('server-only',()=>({}));
+const {save,limit}=vi.hoisted(()=>({save:vi.fn(),limit:vi.fn()}));
+vi.mock('../../../lib/server/request-limit',()=>({limitRequest:limit}));
+vi.mock('../../../lib/server/demo-requests',()=>({saveDemoRequest:save,DemoRequestError:class extends Error{status=400;}}));
+import {POST} from './route';
+import {RequestBodyError} from '../../../lib/server/request-body';
+const make=(body:unknown)=>new Request('https://closureproof.example/api/demo-requests',{method:'POST',headers:{'Content-Type':'application/json',origin:'https://closureproof.example'},body:JSON.stringify(body)});
+afterEach(()=>vi.resetAllMocks());
+it('blocks honeypot submissions without saving or emailing',async()=>{expect((await POST(make({website:'spam'}))).status).toBe(400);expect(save).not.toHaveBeenCalled();});
+it('does not save when the distributed budget is exhausted',async()=>{limit.mockRejectedValue(new RequestBodyError('Too many requests.',429));expect((await POST(make({website:''}))).status).toBe(429);expect(save).not.toHaveBeenCalled();});
+it('rejects a cross-site form before invoking any service',async()=>{const r=make({});r.headers.set('origin','https://attacker.example');expect((await POST(r)).status).toBe(403);expect(save).not.toHaveBeenCalled();expect(limit).not.toHaveBeenCalled();});
+it('removes the bot field and only claims success after saving',async()=>{save.mockResolvedValue({accepted:true});const response=await POST(make({website:'',name:'Test'}));expect(response.status).toBe(201);expect(save).toHaveBeenCalledWith({name:'Test'});});

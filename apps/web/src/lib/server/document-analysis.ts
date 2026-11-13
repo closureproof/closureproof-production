@@ -21,7 +21,7 @@ export function dbError(error:{message:string;code?:string}|null) {
   if(!error)return;
   if(error.code==='42501')throw new AnalysisError('Server extraction storage is unavailable. Check the server-only Supabase service-role key.',503);
   if(['42P01','PGRST202','PGRST205','42883'].includes(error.code||''))throw new AnalysisError('Install 20261111000100_ai_document_extraction.sql in Supabase to enable document extraction.',503);
-  throw new AnalysisError(error.message,/limit|quota/i.test(error.message)?429:409);
+  throw new AnalysisError(/limit|quota/i.test(error.message)?'The processing limit has been reached. Please try again later.':'The record is unavailable or has changed. Reload and try again.',/limit|quota/i.test(error.message)?429:409);
 }
 const uuid=z.string().uuid();
 const requestSchema=z.discriminatedUnion('mode',[
