@@ -16,7 +16,8 @@
     "test": "turbo run test",
     "test:db": "turbo run test:db",
     "test:e2e": "turbo run test:e2e",
-    "check:supabase": "turbo run check:supabase"
+    "check:supabase": "turbo run check:supabase",
+    "ci:prepare-sql": "node scripts/ci-sql-bundle.mjs prepare"
   },
   "devDependencies": {
     "turbo": "^2.11.10"

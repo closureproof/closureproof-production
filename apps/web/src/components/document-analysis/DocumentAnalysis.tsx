@@ -20,14 +20,27 @@ export function AuditReportIntake({onOpenChange}:{onOpenChange?:(open:boolean)=>
  async function retryAnalysis(id:string){setBusy(true);setError('');try{setRun(await documentApi.process(id));}catch(e){setError(errorText(e));await refresh(id);}finally{setBusy(false);}}
  async function upload(){if(!file)return;setBusy(true);setError('');try{if(!documentMime(file.name)||!file.size||file.size>DOCUMENT_LIMIT)throw Error('Choose a non-empty PDF or DOCX up to 25 MB.');const current=await documentApi.report(file,requestId.current);setRun(current);requestId.current=crypto.randomUUID();setFile(null);try{setRun(await documentApi.process(current.id));}catch(e){setError(errorText(e));await refresh(current.id);}}catch(e){setError(errorText(e));}finally{setBusy(false);}}
  function toggle(){const next=!open;setOpen(next);onOpenChange?.(next);}
- return <Card className="mb-6 max-w-4xl"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="flex items-center gap-2 font-display text-lg font-semibold"><FileText size={20}/>Start from an audit report</h2><p className="mt-2 text-xs leading-6 text-muted">Upload a PDF or DOCX, then review the extracted findings before submitting them.</p></div><Button type="button" secondary disabled={busy} aria-expanded={open} onClick={toggle}>{open?'Enter a finding manually':'Upload audit report'}</Button></div><Link className="mt-4 inline-block text-xs font-semibold text-accent" to="/app/submission/reports">View previous report extractions</Link>{open&&<div className="mt-5 space-y-5"><div className="flex flex-col items-stretch gap-3 rounded-xl border-2 border-dashed border-accent/30 p-4 sm:flex-row sm:items-center"><Upload size={22}/><p className="min-w-0 flex-1 break-all text-xs">{file?.name||'Choose a PDF or DOCX audit report · 25 MB maximum'}</p><Button type="button" secondary disabled={busy} onClick={()=>input.current?.click()}>Browse audit report</Button><input ref={input} aria-label="Audit report file" type="file" accept=".pdf,.docx" className="sr-only" disabled={busy} onChange={event=>{setFile(event.target.files?.[0]||null);setRun(null);setError('');requestId.current=crypto.randomUUID();event.target.value='';}}/></div><Button type="button" disabled={busy||!file} onClick={()=>{void upload();}}>{busy?'Preparing draft findings…':'Extract draft findings'}</Button>{error&&<Notice error>{error}</Notice>}{run&&<section aria-label="Current report extraction" className="space-y-4 rounded-xl border border-line p-4"><ReportExtractionResult run={run} busy={busy} onProcess={()=>{void retryAnalysis(run.id);}} onRefresh={()=>{void refresh(run.id);}}/></section>}</div>}</Card>;
-}
-export function ReportExtractionHistory(){
- const [runs,setRuns]=useState<PublicAnalysisRun[]>([]);const [error,setError]=useState('');const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);
- async function load(){try{const response=await documentApi.list();setRuns(await Promise.all(response.runs.map(run=>documentApi.get(run.id))));setError('');}catch(e){setError(errorText(e));}finally{setLoading(false);}}
- useEffect(()=>{void load();},[]);
- async function retryAnalysis(id:string){setBusy(true);try{await documentApi.process(id);await load();}catch(e){setError(errorText(e));}finally{setBusy(false);}}
- return <><Link className="mb-5 inline-block text-xs font-semibold text-accent" to="/app/submission">Back to new submission</Link><h1 className="mb-3 font-display text-3xl font-semibold">Report extraction history</h1><p className="mb-6 text-sm text-muted">Open a previous document to continue reviewing its draft findings or retry its extraction.</p>{error&&<Notice error>{error}</Notice>}{loading?<p>Loading previous extractions…</p>:!runs.length?<Card>No previous report extractions.</Card>:<div className="space-y-4">{runs.map(run=><details key={run.id} className="rounded-2xl border border-line bg-white p-5"><summary className="cursor-pointer break-words text-sm font-semibold">{run.filename} · {run.status}</summary><div className="mt-5"><ReportExtractionResult run={run} busy={busy} onProcess={()=>{void retryAnalysis(run.id);}} onRefresh={()=>{void load();}}/></div></details>)}</div>}</>;
+ return <Card className="mb-6 max-w-4xl">
+  <div className="flex flex-wrap items-center justify-between gap-3">
+   <div><h2 className="flex items-center gap-2 font-display text-lg font-semibold"><FileText size={20}/>Start from an audit report</h2><p className="mt-2 text-xs leading-6 text-muted">Upload a PDF or DOCX, then review the extracted findings before submitting them.</p></div>
+   <Button type="button" secondary disabled={busy} aria-expanded={open} onClick={toggle}>{open?'Enter a finding manually':'Upload audit report'}</Button>
+  </div>
+  {open&&<div className="mt-5 space-y-5">
+   {file&&<section aria-label="Selected audit report" className="flex items-start gap-3 rounded-xl border border-accent/20 bg-soft/50 p-4">
+    <span className="rounded-lg bg-white p-2 text-accent"><FileText size={22} aria-hidden="true"/></span>
+    <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Selected report</p><p className="mt-1 break-words text-sm font-semibold [overflow-wrap:anywhere]">{file.name}</p><p className="mt-1 text-xs text-muted">{file.name.split('.').pop()?.toUpperCase()} · {(file.size/1024/1024).toFixed(2)} MB</p></div>
+    <Button type="button" size="compact" secondary disabled={busy} aria-label="Remove selected audit report" onClick={()=>{setFile(null);setError('');requestId.current=crypto.randomUUID();}}><X size={14} aria-hidden="true"/>Remove</Button>
+   </section>}
+   {run&&<section aria-label="Current report extraction" className="space-y-4 rounded-xl border border-line p-4"><ReportExtractionResult run={run} busy={busy} onProcess={()=>{void retryAnalysis(run.id);}} onRefresh={()=>{void refresh(run.id);}}/></section>}
+   <div aria-label="Audit report upload controls" className="flex flex-col items-stretch gap-3 rounded-xl border-2 border-dashed border-accent/30 p-4 sm:flex-row sm:items-center">
+    <Upload size={22} aria-hidden="true"/><p className="min-w-0 flex-1 text-xs leading-6">Choose a PDF or DOCX audit report<span className="block text-muted">25 MB maximum</span></p>
+    <Button type="button" secondary disabled={busy} onClick={()=>input.current?.click()}>Browse audit report</Button>
+    <input ref={input} aria-label="Audit report file" type="file" accept=".pdf,.docx" className="sr-only" disabled={busy} onChange={event=>{setFile(event.target.files?.[0]||null);setRun(null);setError('');requestId.current=crypto.randomUUID();event.target.value='';}}/>
+   </div>
+   <Button type="button" disabled={busy||!file} onClick={()=>{void upload();}}>{busy?'Preparing draft findings…':'Extract draft findings'}</Button>
+   {error&&<Notice error>{error}</Notice>}
+  </div>}
+ </Card>;
 }
 type FactEdit = { value: string; removed: boolean; editing: boolean };
 export interface EvidenceAnalysisHandle { saveFacts: (reviewer: string, onlyKeys?: string[]) => Promise<string[]>; saveEdits: (reviewer:string)=>Promise<void> }

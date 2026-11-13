@@ -12,7 +12,7 @@ export const documentApi={
   confirm:(id:string,body:unknown)=>request<FactConfirmation>('/'+encodeURIComponent(id)+'/confirm',body),
   async report(file:File,requestId:string){
     const result=await request<{run:PublicAnalysisRun;upload:{path:string;token:string}|null}>('',{mode:'report',request_id:requestId,filename:file.name,byte_size:file.size});
-    if(result.upload){const {error}=await getSupabase().storage.from('closureproof-pilot-evidence').uploadToSignedUrl(result.upload.path,result.upload.token,file,{contentType:result.run.mime,upsert:false});if(error)throw Error('The report could not be uploaded. Choose the original file again to retry, or find the reserved analysis in previous report extractions.');}
+    if(result.upload){const {error}=await getSupabase().storage.from('closureproof-pilot-evidence').uploadToSignedUrl(result.upload.path,result.upload.token,file,{contentType:result.run.mime,upsert:false});if(error)throw Error('The report could not be uploaded. Choose the original file again to retry.');}
     return result.run;
   },
   async evidence(finding:string,revision:number,evidence:string,requestId:string){return request<{run:PublicAnalysisRun}>('',{mode:'evidence',request_id:requestId,finding_id:finding,finding_revision:revision,evidence_id:evidence});},
