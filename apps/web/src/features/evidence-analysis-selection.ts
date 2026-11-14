@@ -4,7 +4,7 @@ import type { ManualFinding } from '../lib/manual-api';
 // Retain all history, but use only the newest completed analysis for each exact
 // current evidence version/hash. Repeated extraction is not additional evidence.
 export function latestEvidenceAnalyses(runs:PublicAnalysisRun[],finding:Pick<ManualFinding,'revision'|'evidence'>):PublicAnalysisRun[] {
-  const files=(finding.evidence||[]).filter(file=>!finding.evidence?.some(next=>next.supersedesId===file.id));
+  const files=(finding.evidence||[]).filter(file=>!['rejected','insufficient'].includes(file.disposition)&&!finding.evidence?.some(next=>next.supersedesId===file.id));
   const seen=new Set<string>();
   return [...runs].sort((a,b)=>b.created_at.localeCompare(a.created_at)).filter(run=>{
     if(run.mode!=='evidence'||run.status!=='ready'||run.finding_revision!==finding.revision)return false;

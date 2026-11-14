@@ -27,11 +27,12 @@ export function providerReviewSchema(context:ReviewContext) {
     const value=field.options?{type:['string','null'],enum:[...field.options,null]}:field.type==='date'?{anyOf:[{type:'string',pattern:'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'},{type:'null'}]}:field.type==='number'?{anyOf:[{type:'string',pattern:'^[0-9]+$'},{type:'null'}]}:judgementItem.properties.value;
     return {...judgementItem,properties:{...judgementItem.properties,field:{type:'string',enum:[field.key]},value}};
   })};
-  const keys=context.facts.map(fact=>fact.key);
+  const keys=[...new Set(context.facts.map(fact=>fact.key))];
+  schema.$defs={...schema.$defs,sourceKey:keys.length<=200?{type:'string',enum:keys}:{type:'string',pattern:'^(?:'+keys.map(key=>key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')$'}};
   function constrainReferences(node:unknown):void {
     if(!node||typeof node!=='object')return;
     const value=node as Record<string,any>;
-    if(value.properties?.source_refs&&keys.length)value.properties.source_refs.items={type:'string',enum:keys};
+    if(value.properties?.source_refs&&keys.length)value.properties.source_refs.items={$ref:'#/$defs/sourceKey'};
     for(const child of Object.values(value))constrainReferences(child);
   }
   constrainReferences(schema);

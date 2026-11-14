@@ -12,6 +12,7 @@ for(const name of ['20261106000200_public_pilot.sql','20261106000300_iso27001_ch
 const migration=await read('20261111000100_ai_document_extraction.sql');await db.exec(migration);await db.exec(migration);
 
 await db.exec(await read('20261111000500_ai_review_preparation.sql'));await db.exec(await read('20261111000500_ai_review_preparation.sql'));
+await db.exec(await read('20261114000200_multi_document_review.sql'));await db.exec(await read('20261114000200_multi_document_review.sql'));
 await db.exec(await fs.readFile(new URL('../../../supabase/tests/ai_extraction_fixture.sql',import.meta.url),'utf8'));
 let checks=0;function assert(ok,message){if(!ok)throw Error(message);checks++;}
 async function rejects(fn,message){try{await fn();}catch{checks++;return;}throw Error(message);}
@@ -34,6 +35,12 @@ await rejects(()=>db.query('update public.cpp_ai_review_proposals set source_fin
 const second=crypto.randomUUID();await rpc('cpp_claim_ai_review_proposal',[second,...args.slice(1)]);
 await db.query("update public.cpp_ai_review_proposals set status='failed',lease_until=null where id=$1",[second]);
 const retried=await rpc('cpp_claim_ai_review_proposal',[second,...args.slice(1)]);assert(retried.attempt===2,'Explicit retry acquires next attempt');
-await db.query("update public.cpp_ai_review_proposals set status='failed',attempt=3,lease_until=null where id=$1",[second]);
+await db.query("update public.cpp_ai_review_proposals set status='failed',attempt=3,batch_attempt=3,lease_until=null where id=$1",[second]);
 await rejects(()=>rpc('cpp_claim_ai_review_proposal',[second,...args.slice(1)]),'Attempt bound enforced');
+const resumable=crypto.randomUUID();
+for(let batch=0;batch<5;batch++){
+ const step=await rpc('cpp_claim_ai_review_proposal',[resumable,...args.slice(1)]);assert(step.status==='processing','Each pending batch claims one bounded call');
+ await db.query("update public.cpp_ai_review_proposals set status='pending',batch_attempt=0,batch_outputs=batch_outputs||$2::jsonb,lease_until=null where id=$1",[resumable,JSON.stringify([{batch}])]);
+}
+assert((await db.query('select jsonb_array_length(batch_outputs) n from public.cpp_ai_review_proposals where id=$1',[resumable])).rows[0].n===5,'Preparation can resume across more than three successful batches');
 console.log(`${checks} isolated AI review-preparation SQL checks passed`);await db.close();

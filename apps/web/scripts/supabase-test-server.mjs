@@ -41,6 +41,7 @@ await db.exec(await fs.readFile(new URL('../../../supabase/migrations/2026111300
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261113000200_request_security.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261113000300_readable_references.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261114000100_repeat_remediation_requests.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261114000200_multi_document_review.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../../supabase/tests/ai_extraction_fixture.sql',import.meta.url),'utf8'));
 await db.exec('grant usage on schema storage to service_role; grant select on storage.objects to service_role;');
 const objects = new Map(); const tokens = new Map();

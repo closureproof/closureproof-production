@@ -2,7 +2,7 @@ import 'server-only';
 import {createHmac} from 'node:crypto';
 import {demoAdmin} from './demo-requests';
 import {RequestBodyError} from './request-body';
-export type LimitedAction = 'demo' | 'analysis-read' | 'analysis-write' | 'assessment' | 'upload';
+export type LimitedAction = 'demo' | 'analysis-read' | 'analysis-write' | 'analysis-confirm' | 'assessment' | 'upload';
 export async function limitRequest(request: Request, action: LimitedAction) {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!secret) throw new RequestBodyError('Service temporarily unavailable.', 503);

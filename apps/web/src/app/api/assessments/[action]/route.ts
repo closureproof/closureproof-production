@@ -14,7 +14,7 @@ export async function POST(request:Request,{params}:{params:Promise<{action:stri
     if(!sameRequestOrigin(request))throw new AnalysisError('Use the assessment controls in the application.',403);
     const {action}=await params;
     if(!['evaluate','complete','propose'].includes(action))return json({error:'Unknown assessment action.'},404);
-    const body=await readJsonBody(request,180000);
+    const body=await readJsonBody(request,8000000);
     await limitRequest(request,action==='propose'?'analysis-write':'assessment');
     return json(action==='propose'?await proposeReview(body):action==='evaluate'?await previewAssessment(body):await completeAssessment(body));
   }catch(error){return json({error:error instanceof AnalysisError||error instanceof RequestBodyError?error.message:error instanceof ZodError?'Assessment inputs do not match the protocol. Check dates, values and required fields.':'Assessment could not be completed. Your saved review remains available.'},error instanceof AnalysisError||error instanceof RequestBodyError?error.status:error instanceof ZodError?400:500);}

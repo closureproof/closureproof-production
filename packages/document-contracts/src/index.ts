@@ -9,12 +9,12 @@ export const extractionSchema = z.object({
   coverage: z.enum(['readable_text','partial','unreadable']),
   limitations: z.array(z.string().max(500)).max(12),
   findings: z.array(z.object({ fields: fieldsSchema, sources: z.array(z.object({ field: z.enum(findingKeys), ...sourceSchema.shape })).max(30) })).max(20),
-  facts: z.array(z.object({ label: z.string().min(1).max(150), value: z.string().min(1).max(2000), ...sourceSchema.shape })).max(20),
+  facts: z.array(z.object({ label: z.string().min(1).max(150), value: z.string().min(1).max(2000), ...sourceSchema.shape })),
 });
 export type ExtractionResult = z.infer<typeof extractionSchema>;
 export type DraftFinding = ExtractionResult['findings'][number];
 export type SourceReference = z.infer<typeof sourceSchema>;
-export const confirmationSchema = z.object({ fact_index: z.number().int().min(0).max(19), decision: z.enum(['confirmed','corrected','rejected']), value: z.string().max(2000), actor: z.string().trim().min(2).max(200), reason: z.string().trim().max(2000), source_checked: z.boolean() }).superRefine((c,ctx)=>{
+export const confirmationSchema = z.object({ fact_index: z.number().int().min(0), decision: z.enum(['confirmed','corrected','rejected']), value: z.string().max(2000), actor: z.string().trim().min(2).max(200), reason: z.string().trim().max(2000), source_checked: z.boolean() }).superRefine((c,ctx)=>{
   if(c.decision!=='rejected'&&(!c.source_checked||!c.value.trim()))ctx.addIssue({code:'custom',message:'Open the original source, check the reference and confirm its interpretation.'});
   if(c.decision!=='confirmed'&&c.reason.length<10)ctx.addIssue({code:'custom',message:'Explain the correction or rejection (at least 10 characters).'});
 });

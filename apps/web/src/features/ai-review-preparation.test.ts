@@ -35,3 +35,14 @@ it('keeps valid citations while leaving uncited claims unknown',()=>{
  const value=output();value.engine[0].source_refs=[];value.judgements[0].source_refs=[];value.population.source_refs=[];
  const result=prepareAIReview(value,finding,[fact]);expect(result.engine.entries.scope.value).toBe('');expect(result.judgement.scope_status).toBe('Not yet established');expect(result.reviewed).toBeNull();expect(result.checks[0].source_location).toContain('source.pdf');expect(result.sourceWarnings.length).toBeGreaterThan(0);
 });
+
+it('preserves more than twenty cited facts across evidence documents',()=>{
+ const facts=Array.from({length:35},(_,index)=>({...fact,key:'run:'+index,index,evidenceId:index<20?'evidence-a':'evidence-b',filename:index<20?'first.pdf':'second.docx'}));
+ const proposed=output();proposed.checklist[0].source_refs=facts.map(fact=>fact.key);const prepared=prepareAIReview(proposed,finding,facts);
+ expect(prepared.sourceKeys).toHaveLength(35);expect(prepared.checks[0].evidence_ids).toEqual(['evidence-a','evidence-b']);
+});
+it('keeps contradictory exception answers unresolved rather than discarding the entire draft',()=>{
+ const proposed=output();proposed.judgements.push({field:'exceptions_status',value:'None identified',source_refs:['run:0']});
+ proposed.exceptions=[{reference:'EX-1',description:'An exception needs additional supporting records.',owner:'IT owner',disposition:'open',evidence_reference:'source.pdf',closure_impact:'Unresolved evidence requires review.',source_refs:['run:0']}];
+ const prepared=prepareAIReview(proposed,finding,[fact]);expect(prepared.engine.entries.scope.value).toBe('');expect(prepared.judgement.exceptions_status).toBe('Not yet established');expect(prepared.exceptions).toHaveLength(1);expect(prepared.sourceWarnings.join(' ')).toContain('disagree');
+});

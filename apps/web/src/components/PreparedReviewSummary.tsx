@@ -22,7 +22,7 @@ export function preparationAttention(proposal:ReviewProposal,finding:ManualFindi
  return {decisions:[...new Set(decisions)],limitations:[...new Set(limitations)],conflicts:[...new Set(proposal.output.conflicts)]};
 }
 export function PreparedReviewSummary({proposal,finding,disabled,onApply}:{proposal:ReviewProposal;finding:ManualFinding;disabled:boolean;onApply:()=>void}){
- const attention=preparationAttention(proposal,finding);const needsAttention=attention.decisions.length+attention.limitations.length+attention.conflicts.length>0;
+ const attention=preparationAttention(proposal,finding);const needsAttention=attention.decisions.length+attention.conflicts.length>0;
  return <section aria-label="Prepared review draft" className="space-y-4 border-t border-line pt-5">
   <div className="flex flex-wrap items-start justify-between gap-4"><div><p role="status" className="text-sm font-semibold text-accent">Draft prepared</p><p className="mt-1 text-xs leading-6 text-muted">{proposal.prepared.checks.length} checklist items · {proposal.prepared.sourceKeys.length} supporting facts</p><p className="mt-1 text-xs leading-6">{needsAttention?'Ready to use. Some assessment items need attention.':'Ready to use. Review the prepared answers before completing the assessment.'}</p></div><Button type="button" disabled={disabled} onClick={onApply}>Use draft in review</Button></div>
   <p className="text-xs leading-6 text-muted">Applies the prepared checklist, judgement and assessment answers to your editable review. Completed assessments remain unchanged.</p>
@@ -30,7 +30,6 @@ export function PreparedReviewSummary({proposal,finding,disabled,onApply}:{propo
   {needsAttention&&<div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/40 p-4"><h4 className="text-sm font-semibold">Items needing attention</h4><p className="text-xs leading-6 text-muted">Preparation completed. Unsupported answers remain unassessed. You can use the draft, then address these items or record the evidence needed.</p>
    {attention.decisions.length>0&&<ul className="list-disc space-y-1 pl-4 text-xs leading-6">{attention.decisions.map(note=><li key={note}>{note}</li>)}</ul>}
    {attention.conflicts.length>0&&<div><p className="text-xs font-semibold">Conflicting evidence</p><ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-6">{attention.conflicts.map(note=><li key={note}>{note}</li>)}</ul></div>}
-   {attention.limitations.length>0&&<details><summary className="cursor-pointer text-xs font-semibold">Evidence limitations ({attention.limitations.length})</summary><ul className="mt-2 list-disc space-y-2 pl-4 text-xs leading-6">{attention.limitations.map(note=><li key={note}>{note}</li>)}</ul></details>}
   </div>}
  </section>;
 }

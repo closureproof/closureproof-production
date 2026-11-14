@@ -61,8 +61,11 @@ export function prepareAIReview(raw:unknown,finding:Pick<ManualFinding,'protocol
   const populationRefs=cited(output.population.source_refs,output.population.expected!==null||output.population.reviewed!==null);
   if(populationRefs.length)judgement.evidence_refs!.population=[...new Set(populationRefs.map(f=>f.evidenceId))];
   const exceptions=output.exceptions.map(({source_refs,...entry})=>{cited(source_refs,true);return entry;});
-  if(exceptions.length&&judgement.exceptions_status!=='Exceptions identified')throw Error('Proposed exception records disagree with the exception judgement.');
-  if(used.size>20)throw Error('The proposed assessment cites more than 20 facts. Use a more focused evidence set or continue manually.');
+  if(exceptions.length&&judgement.exceptions_status!=='Exceptions identified'){
+    const warning='The proposed exception records and exception judgement disagree. Confirm the exception position before relying on the assessment.';
+    sourceWarnings.push(warning);output.conflicts.push(warning);
+  }
+
   // Retest identity/evidence are document claims, never reviewer identity or a
   // completed independent verification inferred from a test file being present.
   const retest=engine.entries.retest;

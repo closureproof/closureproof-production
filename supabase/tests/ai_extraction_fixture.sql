@@ -48,3 +48,18 @@ begin
  return (select to_jsonb(x.*)||jsonb_build_object('confirmations','[]'::jsonb,'submissions','[]'::jsonb) from public.cpp_ai_runs x where x.id=r.id);
 end$$;
 grant execute on function public.cpp_test_ai_prepared_review(text) to anon;
+-- TEST ONLY: two source documents, 60 facts and multiple processing batches.
+create or replace function public.cpp_test_ai_large_review() returns jsonb language plpgsql security definer set search_path='' as $$
+declare seed jsonb;r public.cpp_ai_runs;upload jsonb;rid uuid:=gen_random_uuid();facts jsonb;
+begin
+ seed:=public.cpp_test_ai_prepared_review('Large multi-document review');select * into r from public.cpp_ai_runs where id=(seed->>'id')::uuid;
+ upload:=public.cpp_begin_upload(r.finding_id,2,jsonb_build_object('filename','second-review.pdf','mime','application/pdf','size',24,'sha256',repeat('b',64)),jsonb_build_object('evidence_type','Access review','source_system','Identity platform','source_account','Production','covered_resources','User population','description','Second supporting source document.'));
+ insert into storage.objects(bucket_id,name,metadata) values('closureproof-pilot-evidence',upload->>'path','{"size":24,"mimetype":"application/pdf"}'::jsonb);
+ perform public.cpp_finalize_upload((upload->>'id')::uuid,2);
+ select jsonb_agg(jsonb_build_object('label','Supporting record '||i,'value',r.result#>>'{facts,0,value}','quote',repeat('Documented source claim. ',50),'locator','Record '||i,'page',1)) into facts from generate_series(1,30)i;
+ delete from public.cpp_ai_runs where id=r.id;
+ insert into public.cpp_ai_runs(id,request_id,request_fingerprint,mode,finding_id,finding_revision,evidence_id,evidence_version,filename,mime,byte_size,sha256,storage_path,status,model,result) values(r.id,r.request_id,r.request_fingerprint,r.mode,r.finding_id,3,r.evidence_id,1,r.filename,r.mime,r.byte_size,r.sha256,r.storage_path,'ready','test-provider',jsonb_set(r.result,'{facts}',facts));
+ insert into public.cpp_ai_runs(id,request_id,request_fingerprint,mode,finding_id,finding_revision,evidence_id,evidence_version,filename,mime,byte_size,sha256,storage_path,status,model,result) values(rid,rid,'fixture','evidence',r.finding_id,3,(upload->>'id')::uuid,1,'second-review.pdf','application/pdf',24,repeat('b',64),upload->>'path','ready','test-provider',jsonb_set(r.result,'{facts}',facts));
+ return jsonb_build_object('finding_id',r.finding_id);
+end$$;
+grant execute on function public.cpp_test_ai_large_review() to anon;

@@ -10,6 +10,7 @@ export function reviewProviderFixture(body){
   judgements:judgement_sections.flatMap(section=>section.fields.map(field=>({field:field.key,value:field.options?choices[field.key]||null:field.type?null:note,source_refs:field.options&&!choices[field.key]||field.type?[]:[key]}))),
   population:{expected:121,reviewed:121,source_refs:[key]},exceptions:[],summary:'The synthetic source records support the documented correction and full population review; this is a proposed review summary.',next_actions:'',limitations:[],conflicts:[],
  };
+ if(String(context.finding.details.title).includes('Large multi-document review'))output.checklist[0].source_refs=context.facts.map(fact=>fact.key);
  if(String(context.finding.details.title).includes('Unsupported AI source'))output.engine[0].source_refs=['nonexistent-fact'];
  return {status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(output)}]}],usage:{input_tokens:100,output_tokens:100}};
 }

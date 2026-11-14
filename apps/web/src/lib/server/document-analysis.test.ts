@@ -37,3 +37,10 @@ it('constrains DOCX page fields to null in the provider schema, not just the pro
  const pages:unknown[]=[];const visit=(node:unknown)=>{if(!node||typeof node!=='object')return;const value=node as Record<string,unknown>;const props=value.properties as Record<string,unknown>|undefined;if(props?.page)pages.push(props.page);Object.values(value).forEach(visit);};visit(body.text.format.schema);
  expect(pages.length).toBeGreaterThan(0);expect(pages.every(page=>JSON.stringify(page)==='{"type":"null"}')).toBe(true);
 });
+
+it('retains more than twenty evidence facts without a schema count restriction',async()=>{
+ const facts=Array.from({length:45},(_,index)=>({label:'Source record '+index,value:'Recorded evidence fact '+index,quote:'Recorded source passage.',locator:'Record '+index,page:1}));
+ const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({...output,facts})}]}]})));
+ const result=await extractWithOpenAI(strToU8('%PDF-'),{...run,mode:'evidence'},fetcher);expect(result.result.facts).toHaveLength(45);
+ const body=JSON.parse(fetcher.mock.calls[0][1].body);expect(body.text.format.schema.properties.facts.maxItems).toBeUndefined();
+});

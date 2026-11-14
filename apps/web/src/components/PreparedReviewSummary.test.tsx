@@ -29,3 +29,11 @@ it('preserves distinct source limitations and conflicts while removing exact dup
  const p=proposal();p.output.limitations=['Missing attachment.','Missing attachment.','Evidence dates are incomplete.'];p.output.conflicts=['Conflicting dates.','Conflicting dates.'];
  expect(preparationAttention(p,finding)).toEqual({decisions:[],limitations:['Missing attachment.','Evidence dates are incomplete.'],conflicts:['Conflicting dates.']});
 });
+
+it('does not display generic extraction notices or flag them as review tasks',()=>{
+ const p=proposal();p.output.limitations=['Document is synthetic and fictional; no real infrastructure was accessed.','No real approvals or certifications occurred.','Only one page provided; tables or additional pages might be missing.'];
+ render(<PreparedReviewSummary finding={finding} proposal={p} disabled={false} onApply={()=>{}}/>);
+ for(const notice of p.output.limitations)expect(screen.queryByText(notice)).toBeNull();
+ expect(screen.queryByText('Items needing attention')).toBeNull();expect(screen.queryByText(/Evidence limitations/)).toBeNull();
+ expect(p.output.limitations).toHaveLength(3);
+});

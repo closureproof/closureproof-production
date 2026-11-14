@@ -1,14 +1,16 @@
+import {readApiResponse} from './api-response';
 import { getSupabase } from './supabase';
 import type { ScopeRequest } from '../features/control-scope';
 import type { FindingInput } from './manual-api';
 import type { AnalysisRun, FactConfirmation } from '@closureproof/document-contracts';
 export type PublicAnalysisRun = Omit<AnalysisRun,'storage_path'>;
-async function request<T>(path:string,body?:unknown):Promise<T>{const response=await fetch('/api/document-analysis'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?undefined:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});const data=await response.json().catch(()=>null);if(!response.ok)throw Error(data?.error||'Document extraction is unavailable. Continue manually.');return data;}
+async function request<T>(path:string,body?:unknown):Promise<T>{const response=await fetch('/api/document-analysis'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?undefined:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});return readApiResponse<T>(response,'Document analysis');}
 export const documentApi={
   list:(finding?:string)=>request<{runs:PublicAnalysisRun[]}>(''+(finding?'?finding='+encodeURIComponent(finding):'')),
   get:(id:string)=>request<PublicAnalysisRun>('/'+encodeURIComponent(id)),
   process:(id:string)=>request<PublicAnalysisRun>('/'+encodeURIComponent(id)+'/process',{}),
   source:(id:string)=>request<{url:string;filename:string;sha256:string}>('/'+encodeURIComponent(id)+'/source'),
+  confirmMany:(id:string,confirmations:unknown[])=>request<{confirmations:FactConfirmation[]}>('/'+encodeURIComponent(id)+'/confirm-many',{confirmations}),
   confirm:(id:string,body:unknown)=>request<FactConfirmation>('/'+encodeURIComponent(id)+'/confirm',body),
   async report(file:File,requestId:string){
     const result=await request<{run:PublicAnalysisRun;upload:{path:string;token:string}|null}>('',{mode:'report',request_id:requestId,filename:file.name,byte_size:file.size});
