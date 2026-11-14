@@ -9,6 +9,7 @@ test('all existing sidebar sections open their own real-data pages', async ({ pa
   await page.getByRole('navigation',{name:'Workspace navigation'}).getByRole('link',{name:label,exact:label!=='Reviewer queue'}).click();
   await expect(page).toHaveURL(new RegExp('/app'+suffix+'$'));
   await expect(page.getByRole('heading',{name:heading,exact:true})).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),{message:label+' should fit the viewport without horizontal scrolling'}).toBe(true);
  }
  for(const alias of ['/dashboard.html','/preview','/workbench']){await page.goto(alias);await expect(page).toHaveURL(new RegExp(alias.replace('.', '\\.')+'$'));await expect(page.getByRole('heading',{name:'Page not found',exact:true})).toBeVisible();}
 });

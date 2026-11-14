@@ -55,12 +55,9 @@ test('Supabase contract: submission populates original dashboard; review complet
   await expect(page.getByRole('heading', { name: 'Upload submitted evidence' })).toHaveCount(0);
   await expect(page.getByLabel('Evidence file', { exact: true })).toHaveCount(0);
   await page.goto(findingUrl);
-  await page.getByText('Record evidence judgement', { exact: true }).click();
-  await page.getByLabel('Evidence judgement', { exact: true }).selectOption('insufficient');
-  await page.getByLabel('Evidence judgement rationale', { exact: true }).fill('Echo is absent from this export; complete population evidence is needed.');
-  await page.getByRole('button', { name: 'Save evidence judgement', exact: true }).click();
-  await expect(page.getByText('insufficient', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Open manual review', exact: true }).click();
+  await expect(page.getByText('Record evidence judgement', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Save evidence judgement', exact: true })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Open review', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Inspect. Record. Explain.' })).toBeVisible();
   const review = page.locator('[data-review-form]');
   const steps = page.getByRole('navigation', { name: 'Review steps', exact: true });

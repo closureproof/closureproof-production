@@ -21,7 +21,7 @@ export function Brand({ light = false }: { light?: boolean }) {
 
 export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: string }) {
   const colors: Record<string, string> = { green: 'border-[#53755b]/30 bg-[#53755b]/8 text-[#3e6245]', amber: 'border-[#95662c]/30 bg-[#95662c]/8 text-[#80531b]', red: 'border-rose-200 bg-rose-50 text-rose-800', neutral: 'border-ink/15 bg-ink/3 text-muted' };
-  return <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] leading-relaxed ${colors[tone] || colors.neutral}`}><span className="size-1 shrink-0 bg-current" />{children}</span>;
+  return <span className={`inline-flex w-fit max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] leading-5 align-middle ${colors[tone] || colors.neutral}`}><span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" /><span className="min-w-0 break-words">{children}</span></span>;
 }
 
 export function StateBadge({ state }: { state: string }) {
@@ -29,7 +29,7 @@ export function StateBadge({ state }: { state: string }) {
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-line bg-paper p-5 sm:p-6 ${className}`}>{children}</section>;
+  return <section className={`min-w-0 rounded-2xl border border-line bg-paper p-5 sm:p-6 ${className}`}>{children}</section>;
 }
 
 export function PageHeader({ eyebrow = 'Workspace', title, description, action }: { eyebrow?: string; title: string; description: string; action?: ReactNode }) {
