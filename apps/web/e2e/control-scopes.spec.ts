@@ -6,7 +6,7 @@ import { openJudgementDetails, openConclusionDetails } from './helpers';
 test('submission selects a focused control checklist; scoped completion and later amendments preserve the assessed scope', async ({page})=>{
  test.setTimeout(60000);
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/app/submission');
+ await page.goto('/app/submission');await page.getByRole('button',{name:'Enter finding manually',exact:true}).click();
  await page.getByRole('checkbox',{name:/^A\.5\.18 ·/}).check();
  await expect(page.getByText('5 checklist items · 6 review sections · mapping 1.0-control-scope',{exact:true})).toBeVisible();
  await page.getByText('Checklist and expected evidence',{exact:true}).click();
@@ -88,7 +88,7 @@ test('submission selects a focused control checklist; scoped completion and late
 
 
 test('SoA theme sections retain selections across themes, searches and removals',async({page})=>{
- await page.goto('/app/submission');
+ await page.goto('/app/submission');await page.getByRole('button',{name:'Enter finding manually',exact:true}).click();
  const sections=page.getByRole('group',{name:'Control sections',exact:true});
  const available=page.getByRole('group',{name:'Available ISO controls',exact:true});
  const selected=page.getByRole('region',{name:'Selected ISO controls',exact:true});

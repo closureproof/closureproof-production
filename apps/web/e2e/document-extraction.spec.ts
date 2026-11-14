@@ -5,7 +5,11 @@ test('audit report extraction creates only a user-confirmed finding with origina
  const seeded=await request.post(rest+'cpp_test_ai_report',{headers,data:{}});expect(seeded.ok()).toBeTruthy();const run=await seeded.json();
  await page.route('**/api/document-analysis**',async route=>{const url=new URL(route.request().url());if(url.pathname.endsWith('/process')||url.pathname.endsWith('/'+run.id))return route.fulfill({json:run});if(route.request().method()==='POST')return route.fulfill({json:{run:{...run,status:'pending',result:null},upload:{path:'ai-sources/fixture/original.pdf',token:'test-signed-token'}}});return route.fulfill({json:{runs:[]}});});
  await page.route('**/storage/v1/object/upload/sign/**',route=>route.fulfill({json:{Key:'ai-sources/fixture/original.pdf',Id:run.id}}));
- await page.goto('/app/submission');await page.getByRole('button',{name:'Upload audit report',exact:true}).click();
+ await page.goto('/app/submission');
+ await expect(page.getByRole('button',{name:'Enter finding manually',exact:true})).toBeVisible();
+ await expect(page.getByLabel('Finding title',{exact:true})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Browse audit report',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Upload audit report',exact:true}).click();
  await page.getByLabel('Audit report file',{exact:true}).setInputFiles({name:'audit-report.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7 synthetic audit')});
  await expect(page.getByRole('button',{name:'Extract draft findings',exact:true})).toBeEnabled();
  await expect(page.getByRole('checkbox',{name:/I authorise sending this document to OpenAI/})).toHaveCount(0);
@@ -27,7 +31,7 @@ test('audit report extraction creates only a user-confirmed finding with origina
  await page.getByLabel('Evidence description',{exact:true}).fill('Remediation evidence attached while confirming this extracted finding.');
  await page.getByRole('button',{name:'Add to evidence list',exact:true}).click();
  await expect(page.getByRole('heading',{name:'ai-draft-remediation.txt',exact:true})).toBeVisible();
- await page.getByRole('button',{name:'Submit finding and evidence',exact:true}).click();
+ await page.getByRole('button',{name:'Save finding',exact:true}).click();
  await page.getByRole('link',{name:'Open finding and evidence',exact:true}).click();
  await expect(page).toHaveURL(/\/app\/findings\/[0-9a-f-]+$/);
  await expect(page.getByRole('heading',{name:'Access reviews omitted privileged accounts',exact:true})).toBeVisible();
@@ -125,7 +129,11 @@ test('new report upload is separate from previous extraction history and manual 
  const old={id:'11111111-1111-4111-8111-111111111111',filename:'previous-audit.pdf',status:'failed',mode:'report',result:null,error:'Previous extraction failed',submissions:[],confirmations:[]};
  let historyReads=0;
  await page.route('**/api/document-analysis**',route=>{if(route.request().url().endsWith('/'+old.id))return route.fulfill({json:old});historyReads++;return route.fulfill({json:{runs:[old]}});});
- await page.goto('/app/submission');await page.getByRole('button',{name:'Upload audit report',exact:true}).click();
+ await page.goto('/app/submission');
+ await expect(page.getByRole('button',{name:'Enter finding manually',exact:true})).toBeVisible();
+ await expect(page.getByLabel('Finding title',{exact:true})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Browse audit report',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Upload audit report',exact:true}).click();
  await expect(page.getByLabel('Finding title',{exact:true})).toHaveCount(0);
  await expect(page.getByText('previous-audit.pdf',{exact:true})).toHaveCount(0);
  await expect(page.getByRole('heading',{name:'Report extraction history',exact:true})).toHaveCount(0);

@@ -41,6 +41,8 @@ it('redirects old login links directly to the public dashboard', async () => {
 });
 it('shows the full submission form without an account', async () => {
   show('/app/submission');
+  expect(screen.queryByLabelText('Finding title')).not.toBeInTheDocument();
+  await userEvent.click(await screen.findByRole('button',{name:'Enter finding manually'}));
   expect(await screen.findByLabelText('Finding title')).toBeInTheDocument();
   expect(await screen.findByRole('button', { name: 'Create finding' })).toBeEnabled();
   expect(screen.queryByText(/current role cannot|uploads and saved reviews are unavailable/i)).not.toBeInTheDocument();

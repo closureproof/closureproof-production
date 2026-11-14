@@ -43,7 +43,14 @@ test('completed assessment survives PDF failure; corrected review, rejection, re
   await page.getByRole('button', { name: 'Download report PDF', exact: true }).click();
   await (await firstDownload).saveAs(test.info().outputPath('insufficient-report.pdf'));
   await page.getByRole('button', { name: 'Create assessment revision', exact: true }).click();
+  await expect(page.getByRole('heading', {name:'Evidence & checklist',exact:true})).toBeInViewport();
+  await page.goto('/app/reviews?submission='+encodeURIComponent('finding:'+id));
+  await expect(page.getByRole('link',{name:/Workflow acceptance.*Edit review/})).toHaveAttribute('href',new RegExp('/app/reviews/'+id+'\\?assessment='));
+  await page.getByRole('link',{name:/Workflow acceptance.*Edit review/}).click();
+  await expect(page.getByRole('heading', {name:'Evidence & checklist',exact:true})).toBeInViewport();
+  await expect(page.getByText('Editing a revision of the completed assessment.',{exact:false})).toBeVisible();
   const form = page.locator('[data-review-form]');
+  await expect(form.getByLabel('Reviewer',{exact:true})).toHaveValue(body.reviewer);
   await page.getByRole('navigation', { name: 'Review steps', exact: true }).getByRole('button', { name: /Gaps & exceptions/ }).click();
   await form.getByLabel('Scope and evidence assessment',{exact:true}).selectOption('Sufficient for this finding');
   await form.getByLabel('Root cause and corrective-action assessment',{exact:true}).selectOption('Supported');
@@ -79,9 +86,11 @@ test('completed assessment survives PDF failure; corrected review, rejection, re
   await page.getByLabel('Evidence required', { exact: true }).fill('Complete population source records and reconciliation.');
   await page.getByRole('button', { name: 'Confirm action', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Approval rejected', exact: true })).toBeVisible();
-  await confirm(page, 'Resubmit for Review');
+  await page.goto('/app/findings/'+id);
+  await page.getByLabel('Your name',{exact:true}).fill('Reviewer Morgan');
   await page.getByLabel('Changes and response to requests', { exact: true }).fill('The additional requested records have been resubmitted.');
-  await page.getByRole('button', { name: 'Confirm action', exact: true }).click();
+  await page.getByRole('button', { name: 'Submit remediation for review', exact: true }).click();
+  await page.goto('/app/reviews/'+id);
   await expect(page.getByRole('navigation', { name: 'Review steps', exact: true })).toBeVisible();
   // Complete the next round through the same production transaction; the first test covers full form entry.
   const second = await row(request, 'cpp_findings', id);

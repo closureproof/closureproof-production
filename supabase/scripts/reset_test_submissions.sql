@@ -2,6 +2,7 @@
 -- Preserves schema, workspace configuration, checklists, protocol versions,
 -- daily AI usage accounting and historical cp_* / cpw_* records.
 -- Storage objects are not deleted by this script.
+-- Preserve cpp_private.reference_counters so display IDs are never reused.
 BEGIN;
 SET LOCAL lock_timeout = '10s';
 

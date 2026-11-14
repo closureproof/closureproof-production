@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('finding and multiple attachments submit together and a failed upload retries without duplicates',async({page,request})=>{
  const title='Combined submission '+test.info().project.name+' '+Date.now();
- await page.goto('/app/submission');
+ await page.goto('/app/submission');await page.getByRole('button',{name:'Enter finding manually',exact:true}).click();
  await page.getByRole('checkbox',{name:/^A\.5\.18 ·/}).check();
  for(const [label,value]of [['Finding title',title],['Finding description','The privileged access review omitted identities.'],['Remediation owner','IT Operations'],['Source account / environment reference','SIM-AWS-PROD-01'],['Affected systems / environment','Production'],['Affected identities and resource references','DEMO-PRIV-001 through DEMO-PRIV-126']])await page.getByLabel(label,{exact:true}).fill(value);
  for(const [index,name]of ['population.txt','changes.txt'].entries()){

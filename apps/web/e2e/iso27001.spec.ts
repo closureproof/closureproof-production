@@ -26,7 +26,7 @@ test('legacy checklist adoption preserves category/history and reviewers cannot 
   const id = testInfo.project.name === 'mobile' ? '44444444-4444-4444-8444-444444444442' : '44444444-4444-4444-8444-444444444441';
   const backend='http://127.0.0.1:54330';
   await page.goto('/app/reviews/' + id);
-  await expect(page.getByRole('button',{name:'Request scope correction',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Request scope correction',exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Apply selected checklist',exact:true})).toHaveCount(0);
   const taskIds=isoProtocolTemplates.find(template=>template.code==='access')!.checks.map(check=>check.sourceTaskId);
   async function apply(ids:string[]) {

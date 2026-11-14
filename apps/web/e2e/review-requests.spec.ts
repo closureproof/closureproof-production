@@ -7,15 +7,14 @@ test('reviewer requests corrections and evidence; submitter responds and reviewe
  await page.goto(review);
  await expect(page.getByRole('button',{name:'Amend review scope',exact:true})).toHaveCount(0);
  await expect(page.getByRole('button',{name:'Adopt control-based scope',exact:true})).toHaveCount(0);
- for(const [button,field,message] of [['Request scope correction','Requested scope correction','Please include independent retest and confirm the affected account scope.'],['Request more evidence','Evidence required and requested actions','Provide the dated account reconciliation and completed review approvals.']]){
-  await page.getByRole('button',{name:button,exact:true}).click();
-  await page.getByLabel('Request recorded by',{exact:true}).fill('Reviewer Taylor');
-  await page.getByLabel('Reason for request',{exact:true}).fill('The current submission does not establish the required review basis.');
-  await page.getByLabel(field,{exact:true}).fill(message);
-  await page.getByRole('button',{name:'Send request',exact:true}).click();
-  await expect(page.getByText('Request recorded. The finding scope and recommendation have not changed.',{exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Request scope correction',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Request more evidence',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('heading',{name:'Previous review requests',exact:true})).toHaveCount(0);
+ // Existing records remain readable/respondable after request creation moves to remediation.
+ for(const [kind,message] of [['scope','Please include independent retest and confirm the affected account scope.'],['evidence','Provide the dated account reconciliation and completed review approvals.']]){
+  const result=await request.post(rest+'cpp_review_request',{headers,data:{p_finding:run.finding_id,p_revision:run.finding_revision,p_request:crypto.randomUUID(),p_action:'create',p_data:{kind,actor:'Reviewer Taylor',reason:'The current submission does not establish the required review basis.',requested_change:message}}});
+  expect(result.ok(),await result.text()).toBeTruthy();
  }
- await page.reload();await expect(page.getByRole('button',{name:'Request scope correction',exact:true})).toBeVisible();
  await page.goto(finding);
  await expect(page.getByText('Please include independent retest and confirm the affected account scope.',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:'Respond to request',exact:true}).first().click();

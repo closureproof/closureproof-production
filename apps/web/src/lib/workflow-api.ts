@@ -12,10 +12,12 @@ export async function workflowRpc<T>(name: string, body: Record<string,unknown>)
   if(error && name === 'cpp_ai_extraction_version') throw new Error('Install 20261111000100_ai_document_extraction.sql before completing a review with extracted facts.');
   if(error && name === 'cpp_progressive_judgement_version') throw new Error('Install 20261109000400_conditional_judgement.sql in Supabase to enable conditional judgement fields.');
   if(error && name === 'cpp_judgement_schema_version') throw new Error('Install 20261109000300_simplified_reviewer_judgement.sql in the Supabase SQL Editor to enable the simplified judgement form.');
+  if(error && name === 'cpp_repeat_remediation' && ['PGRST202','42883'].includes(error.code)) throw new Error('Install 20261114000100_repeat_remediation_requests.sql in Supabase before sending another remediation request.');
   if(error) throw new Error(['PGRST202','PGRST205','42P01'].includes(error.code) ? 'Install 20261109000100_review_completion_workflow.sql in the Supabase SQL Editor to enable the completion workflow.' : error.message);
   return data as T;
 }
 export const workflowApi = {
+  repeatRemediation: (finding:string,revision:number,previous:string,data:Record<string,string>,request:string) => workflowRpc<string>('cpp_repeat_remediation',{p_finding:finding,p_revision:revision,p_previous:previous,p_data:data,p_request_id:request}),
   complete: async (finding: string, revision: number, review: ReviewInput, request: string, supersedes: string | null) => {
     if (review.ai_confirmation_ids?.length && await workflowRpc<string>('cpp_ai_extraction_version',{}) !== '1.0-openai-native') throw Error('Install the document-extraction migration before completing a review with adopted document facts.');
     if (review.closure_judgement?.version === '3.0-manual' && await workflowRpc<string>('cpp_progressive_judgement_version',{}) !== '3.0-manual') throw Error('Update the conditional judgement migration in Supabase before completing this review.');

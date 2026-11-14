@@ -9,7 +9,7 @@ test('Supabase contract: submission populates original dashboard; review complet
   page.on('pageerror', e => errors.push(e.message)); page.on('request', r => { if (r.url().includes(':8005/')) localBackendCalls.push(r.url()); });
   const title = `Submitted security finding ${Date.now()} ${test.info().project.name}`;
   await openWorkspace(page);
-  await page.goto('/app/submission');
+  await page.goto('/app/submission');await page.getByRole('button',{name:'Enter finding manually',exact:true}).click();
   await expect(page.getByLabel('Finding category', { exact: true })).toHaveValue('access');
   await page.getByRole('checkbox', { name: /^A\.5\.18 ·/ }).check();
   await page.getByRole('checkbox', { name: 'Independent retest assessment', exact: true }).check();
@@ -48,6 +48,7 @@ test('Supabase contract: submission populates original dashboard; review complet
   await page.getByRole('button', { name: 'Download original' }).click();
   expect((await download).suggestedFilename()).toBe('identity-register.json');
   await page.goto('/app/reviews');
+  await page.getByRole('button',{name:'View findings for '+title,exact:true}).click();
   await page.getByRole('link').filter({ hasText: title }).click();
   await expect(page).toHaveURL(/\/app\/reviews\/[^/]+$/);
   await expect(page.getByRole('heading', { name: 'Inspect. Record. Explain.' })).toBeVisible();
@@ -126,13 +127,29 @@ test('Supabase contract: submission populates original dashboard; review complet
   await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText('Evidence pack incomplete: identity-register.json');
   await expect(page.getByRole('button', { name: 'Download report PDF', exact: true })).toBeEnabled();
   await page.unroute('**/storage/v1/object/**');
-  await page.getByRole('button', { name: 'Return for Remediation', exact: true }).click();
+  await page.getByRole('button', { name: 'Request remediation', exact: true }).click();
   await page.getByLabel('Your name', { exact: true }).fill('Reviewer Jane');
   await page.getByLabel('Action owner / retest contact', { exact: true }).fill('IT Operations');
   await page.getByLabel('Requested actions / retest scope', { exact: true }).fill('Review and supply the complete account register.');
   await page.getByLabel('Evidence required', { exact: true }).fill('The fifth identity and its permissions must be supplied.');
   await page.getByRole('button', { name: 'Confirm action', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Remediation requested', exact: true })).toBeVisible();
+  await page.goto('/app/reviews?submission='+encodeURIComponent('finding:'+findingUrl.split('/').pop()));
+  await page.getByRole('link',{name:new RegExp(title)}).click();
+  await expect(page.getByLabel('Request type',{exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'Request remediation',exact:true}).click();
+  await expect(page.getByText('Remediation has already been requested.',{exact:false})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Resubmit for Review',exact:true})).toHaveCount(0);
+  await page.getByLabel('Request type',{exact:true}).selectOption('scope_and_evidence');
+  await page.getByLabel('Requested scope correction',{exact:true}).fill('Include the missing identity in the assessed population and confirm the complete scope.');
+  await expect(page.getByLabel('Your name',{exact:true})).toHaveValue('Reviewer Jane');
+  await expect(page.getByLabel('Action owner / retest contact',{exact:true})).toHaveValue('IT Operations');
+  await expect(page.getByLabel('Requested actions / retest scope',{exact:true})).toHaveValue('Review and supply the complete account register.');
+  await expect(page.getByLabel('Evidence required',{exact:true})).toHaveValue('The fifth identity and its permissions must be supplied.');
+  await page.getByLabel('Requested actions / retest scope',{exact:true}).fill('Review and supply the complete register with exception dispositions.');
+  await page.getByRole('button',{name:'Confirm action',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Remediation requested',exact:true})).toHaveCount(2);
+
   await page.goto(findingUrl);
   await page.getByRole('tab', { name: 'Review history', exact: true }).click();
   await page.getByText(/Reviewer Jane · completed/).click();
@@ -146,12 +163,30 @@ test('Supabase contract: submission populates original dashboard; review complet
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.screenshot({ path: test.info().outputPath('real-data-dashboard.png'), fullPage: true });
   await page.goto(findingUrl);
-  await page.getByLabel('Evidence file', { exact: true }).setInputFiles({ name: 'identity-register-v2.json', mimeType: 'application/json', buffer: Buffer.from('{"covered":["alice","bob","charlie","delta","echo"]}') });
+  await expect(page.getByRole('heading',{name:'Remediation response',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Return for Remediation',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Resubmit for Review',exact:true})).toHaveCount(0);
+  await page.getByLabel('Your name',{exact:true}).fill('IT Operations');
+  await page.getByLabel('Changes and response to requests',{exact:true}).fill('Added the complete register including the previously missing identity.');
+  await page.getByRole('button',{name:'Add evidence',exact:true}).click();
+  await page.getByLabel('Evidence file to add', { exact: true }).setInputFiles({ name: 'identity-register-v2.json', mimeType: 'application/json', buffer: Buffer.from('{"covered":["alice","bob","charlie","delta","echo"]}') });
   await page.getByLabel('Evidence type', { exact: true }).fill('Updated identity register');
   await page.getByLabel('Source system', { exact: true }).fill('Identity service');
   await page.getByLabel('Replaces evidence (optional)', { exact: true }).selectOption({ label: 'identity-register.json · v1' });
   await page.getByLabel('Evidence description', { exact: true }).fill('The full register is submitted for a fresh review.');
-  await page.getByRole('button', { name: 'Upload evidence', exact: true }).click();
+  await page.getByRole('button',{name:'Add to evidence list',exact:true}).click();
+  let lostResponse=false;
+  await page.route('**/rest/v1/rpc/cpp_workflow_action',async route=>{
+    if(!lostResponse&&route.request().postDataJSON()?.p_action==='resubmit'){
+      lostResponse=true;const response=await route.fetch();expect(response.ok()).toBeTruthy();
+      await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:'Simulated lost resubmission response',code:'TEST_RESPONSE_LOST'})});return;
+    }
+    await route.continue();
+  });
+  await page.getByRole('button',{name:'Submit remediation for review',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Retry remediation submission',exact:true})).toBeEnabled();
+  await page.getByRole('button',{name:'Retry remediation submission',exact:true}).click();
+  await page.unroute('**/rest/v1/rpc/cpp_workflow_action');
   await expect(page.getByRole('heading', { name: 'identity-register-v2.json · v2' })).toBeVisible();
   await expect(page.getByText('No current reviewer recommendation', { exact: true })).toBeVisible();
   await page.getByRole('tab', { name: 'Review history', exact: true }).click();
@@ -159,8 +194,13 @@ test('Supabase contract: submission populates original dashboard; review complet
   await expect(page.getByText(/Stale — earlier finding\/evidence revision/).first()).toBeVisible();
   const historicalDownload = page.waitForEvent('download');
   await page.getByRole('tab', { name: 'Evidence', exact: true }).click();
-  await page.getByRole('button', { name: 'Download report PDF', exact: true }).click();
+  await page.getByText('Submission cycles and comparison',{exact:true}).click();
+  await page.getByRole('button', { name: 'Download report PDF', exact: true }).first().click();
   const historicalFile = await (await historicalDownload).path();
   expect(await fs.readFile(historicalFile!)).toEqual(await fs.readFile(test.info().outputPath('assessment-report.pdf')));
+  await page.goto('/app/reviews/'+findingUrl.split('/').pop());
+  await expect(page.getByRole('navigation',{name:'Review steps',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'identity-register-v2.json · v2',exact:true})).toBeVisible();
+  await expect(page.getByText('Cycle 2',{exact:true})).toBeVisible();
   expect(errors).toEqual([]); expect(localBackendCalls).toEqual([]);
 });

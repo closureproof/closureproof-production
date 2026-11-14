@@ -14,6 +14,7 @@ async function rpc(name,args=[]){return(await db.query(`select public.${name}(${
 async function rejects(fn,message){try{await fn();}catch{checks++;return;}throw Error(message);}
 await db.exec(await read('20261106000300_iso27001_checklists.sql'));
 await db.exec(await read('20261109000100_review_completion_workflow.sql'));
+await db.exec(await read('20261114000100_repeat_remediation_requests.sql'));
 await db.exec(await read('20261109000100_review_completion_workflow.sql'));
 
 const org='00000000-0000-4000-8000-000000000001';
@@ -62,12 +63,27 @@ await rejects(()=>db.query('delete from storage.objects where name=$1 returning 
 const command=crypto.randomUUID();const followup={actor:'Reviewer One',owner:'IT owner',requested_actions:'Complete the missing access review.',evidence_requirements:'Provide the full register and action record.'};
 const followId=await rpc('cpp_workflow_action',[id,1,assessment,'return_remediation',JSON.stringify(followup),command]);
 assert(await rpc('cpp_workflow_action',[id,1,assessment,'return_remediation',JSON.stringify(followup),command])===followId,'Follow-up idempotent');
+const repeatData={...followup,requested_actions:'Also provide the documented exception dispositions.'};const repeatKey=crypto.randomUUID();
+const repeatId=await rpc('cpp_repeat_remediation',[id,1,followId,JSON.stringify(repeatData),repeatKey]);
+assert(repeatId!==followId,'Repeat appends a new request');
+assert(await rpc('cpp_repeat_remediation',[id,1,followId,JSON.stringify(repeatData),repeatKey])===repeatId,'Repeat retry is idempotent');
+assert((await db.query('select data from public.cpp_followups where id=$1',[followId])).rows[0].data.requested_actions===followup.requested_actions,'Original request unchanged');
+assert((await db.query('select data from public.cpp_followups where id=$1',[repeatId])).rows[0].data.previous_request_id===followId,'Repeat links to prior request');
+assert((await db.query('select revision,cycle_number from public.cpp_findings where id=$1',[id])).rows[0].revision===1,'Repeat does not start a cycle or mutate finding revision');
+await rejects(()=>rpc('cpp_repeat_remediation',[id,1,followId,JSON.stringify(repeatData),crypto.randomUUID()]),'Outdated request rejected');
+await rejects(()=>rpc('cpp_repeat_remediation',[id,2,repeatId,JSON.stringify(repeatData),crypto.randomUUID()]),'Stale finding revision rejected');
+await rejects(()=>rpc('cpp_repeat_remediation',[id,1,repeatId,JSON.stringify({...repeatData,owner:''}),crypto.randomUUID()]),'Incomplete repeat rejected');
+await rejects(()=>rpc('cpp_repeat_remediation',[id,1,followId,JSON.stringify({...repeatData,actor:'Other person'}),repeatKey]),'Changed retry rejected');
 await rpc('cpp_update_finding',[id,1,JSON.stringify({...input,corrective_action:'Full access register now reviewed'})]);
 assert((await db.query('select lifecycle from public.cpp_findings where id=$1',[id])).rows[0].lifecycle==='changes_requested','Material update preserves follow-up state');
+const furtherId=await rpc('cpp_repeat_remediation',[id,2,repeatId,JSON.stringify(repeatData),crypto.randomUUID()]);
+assert(furtherId!==repeatId,'Additional request remains possible after material updates without rewriting the assessment');
 await rejects(()=>rpc('cpp_complete_review',[id,2,JSON.stringify(body),crypto.randomUUID(),null]),'Changed submission needs next cycle');
 await rpc('cpp_workflow_action',[id,2,assessment,'resubmit',JSON.stringify({actor:'IT owner',change_summary:'Corrective action updated; source records resubmitted.'}),crypto.randomUUID()]);
 const resub=(await db.query('select * from public.cpp_findings where id=$1',[id])).rows[0];
 assert(resub.cycle_number===2&&resub.revision===3,'Resubmission creates cycle and revision');
+await rejects(()=>rpc('cpp_repeat_remediation',[id,3,repeatId,JSON.stringify(repeatData),crypto.randomUUID()]),'Cannot repeat after resubmission');
+assert((await db.query('select status from public.cpp_followups where id=$1',[repeatId])).rows[0].status==='responded','Resubmission responds to additional request');
 assert((await db.query('select status from public.cpp_followups where id=$1',[followId])).rows[0].status==='responded','Request response retained');
 const draft=await rpc('cpp_save_review',[id,3,JSON.stringify(body)]);
 assert((await db.query('select cycle_number from public.cpp_reviews where id=$1',[draft])).rows[0].cycle_number===2,'Draft is associated with current submission cycle');
