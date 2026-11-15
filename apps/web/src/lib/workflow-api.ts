@@ -1,3 +1,4 @@
+import { REVIEW_COMPLETION_CHECKS_SUSPENDED } from './review-completion-policy';
 import { enginePost } from './rules-assessment';
 import { getSupabase } from './supabase';
 import { reviewFromRow, type ManualReview, type ReviewInput } from './manual-api';
@@ -19,6 +20,7 @@ export async function workflowRpc<T>(name: string, body: Record<string,unknown>)
 export const workflowApi = {
   repeatRemediation: (finding:string,revision:number,previous:string,data:Record<string,string>,request:string) => workflowRpc<string>('cpp_repeat_remediation',{p_finding:finding,p_revision:revision,p_previous:previous,p_data:data,p_request_id:request}),
   complete: async (finding: string, revision: number, review: ReviewInput, request: string, supersedes: string | null) => {
+    if(REVIEW_COMPLETION_CHECKS_SUSPENDED)return (await enginePost<{assessmentId:string}>('complete-unrestricted',{findingId:finding,revision,review,requestId:request,supersedes})).assessmentId;
     if (review.ai_confirmation_ids?.length && await workflowRpc<string>('cpp_ai_extraction_version',{}) !== '1.0-openai-native') throw Error('Install the document-extraction migration before completing a review with adopted document facts.');
     if (review.closure_judgement?.version === '3.0-manual' && await workflowRpc<string>('cpp_progressive_judgement_version',{}) !== '3.0-manual') throw Error('Update the conditional judgement migration in Supabase before completing this review.');
     if (review.closure_judgement?.version === '2.0-manual' && await workflowRpc<string>('cpp_judgement_schema_version', {}) !== '2.0-manual') throw Error('Update the simplified reviewer judgement migration in Supabase before completing this review.');

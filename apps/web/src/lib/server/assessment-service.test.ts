@@ -1,3 +1,4 @@
+vi.mock('../review-completion-policy',()=>({REVIEW_COMPLETION_CHECKS_SUSPENDED:false}));
 import {assessmentMethod} from '@closureproof/assessment-engine/protocol-catalogue';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { awsIamCandidate, emptyEngineDraft, type EngineDraft } from '@closureproof/assessment-engine/aws-iam';

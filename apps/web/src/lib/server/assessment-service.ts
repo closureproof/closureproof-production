@@ -1,3 +1,4 @@
+import { REVIEW_COMPLETION_CHECKS_SUSPENDED } from '../review-completion-policy';
 import { validateAppliedProposal } from './ai-review-preparation';
 import {assessmentMethod,PROTOCOL_ENGINE_VERSION} from '@closureproof/assessment-engine/protocol-catalogue';
 import { checklistAnswerSchema } from '@closureproof/assessment-engine/checklist-mapping';
@@ -58,6 +59,7 @@ export async function evaluateAssessment(raw: unknown) {
 }
 export async function previewAssessment(raw: unknown) { const {basis:_,...result}=await evaluateAssessment(raw);return {...result,validationStatus:'candidate' as const}; }
 export async function completeAssessment(raw: unknown) {
+  if(REVIEW_COMPLETION_CHECKS_SUSPENDED)return completeUnrestrictedAssessment(raw);
   const request=completionRequest.parse(raw);
   const review=request.review as unknown as ReviewInput;
   const requestHash=contentHash(request);
@@ -95,4 +97,12 @@ export async function completeAssessment(raw: unknown) {
   const snapshot: RulesSnapshot={...result,protocol:{code:protocol.code,version:protocol.version},protocolDefinition:protocol,validationStatus:'candidate',disposition:selection.disposition,overrideReason:selection.overrideReason||'',overrideEvidenceIds:selection.overrideEvidenceIds||[],recordedRecommendation:review.recommendation!,reviewer:review.reviewer};
   const assessmentId=await rpc<string>('cpp_complete_engine_review',{p_finding:request.findingId,p_revision:request.revision,p_basis:basis,p_review:review,p_snapshot:snapshot,p_request:request.requestId,p_hash:requestHash,p_supersedes:request.supersedes});
   return {assessmentId};
+}
+
+export async function completeUnrestrictedAssessment(raw:unknown){
+ if(!REVIEW_COMPLETION_CHECKS_SUSPENDED)throw new AnalysisError('Use the standard review completion workflow.',404);
+ const request=completionRequest.parse(raw);
+ const {data,error}=await analysisAdmin().rpc('cpp_complete_review_unrestricted',{p_finding:request.findingId,p_revision:request.revision,p_review:request.review,p_request_id:request.requestId,p_supersedes:request.supersedes});
+ if(error)throw new AnalysisError(['PGRST202','42883'].includes(error.code)?'Run 20261115000100_unrestricted_review_completion.sql in Supabase to enable the temporary completion change.':error.message,400);
+ return {assessmentId:data};
 }
