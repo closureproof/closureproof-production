@@ -81,6 +81,9 @@ await expect(page.getByRole('link',{name:'Open finding and evidence',exact:true}
  const findingsReportCard=page.getByRole('button',{name:'View findings for '+run.filename,exact:true});
  await expect(findingsReportCard).toContainText('2 finding(s) · 2 evidence file(s)');
  await findingsReportCard.click();
+ await expect(page.getByText('Your submission',{exact:true})).toBeVisible();
+ await expect(page.getByText('Submission reviews',{exact:true})).toHaveCount(0);
+ await expect(page.getByRole('link',{name:'Open review',exact:true})).toHaveCount(0);
  await expect(page.getByRole('link',{name:/Access finding with retained edits/})).toBeVisible();
  await expect(page.getByRole('link',{name:/Backup finding with retained edits/})).toBeVisible();
  await page.goto('/app/reviews');

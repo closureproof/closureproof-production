@@ -16,7 +16,8 @@ test('submission selects a focused control checklist; scoped completion and late
  await page.getByRole('button',{name:'Create finding',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Focused access review '+test.info().project.name,exact:true})).toBeVisible();
  const findingUrl=page.url();
- await page.getByRole('link',{name:'Open review',exact:true}).click();
+ await expect(page.getByRole('link',{name:'Open review',exact:true})).toHaveCount(0);
+ await page.goto(findingUrl.replace('/app/findings/','/app/reviews/'));
  await expect(page.locator('[data-protocol-check]')).toHaveCount(5);
  await expect(page.getByRole('group',{name:'Independent retest assessment',exact:true})).toHaveCount(0);
  await expect(page.getByRole('button',{name:'Amend review scope',exact:true})).toHaveCount(0);
@@ -28,7 +29,8 @@ test('submission selects a focused control checklist; scoped completion and late
  await page.getByLabel('Scope amendment recorded by',{exact:true}).fill('Reviewer Taylor');
  await page.getByLabel('Reason for scope amendment',{exact:true}).fill('Focus this review on the specific one-time corrective action.');
  await page.getByRole('button',{name:'Confirm review scope change',exact:true}).click();
- await page.getByRole('link',{name:'Open review',exact:true}).click();
+ await expect(page.getByRole('link',{name:'Open review',exact:true})).toHaveCount(0);
+ await page.goto(findingUrl.replace('/app/findings/','/app/reviews/'));
  await expect(page.locator('#judgement-operation')).toHaveCount(0);
  await expect(page.locator('#judgement-retest')).toHaveCount(0);
  await expect(page.locator('fieldset[id^="judgement-"]')).toHaveCount(5);

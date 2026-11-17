@@ -57,7 +57,8 @@ test('Supabase contract: submission populates original dashboard; review complet
   await page.goto(findingUrl);
   await expect(page.getByText('Record evidence judgement', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Save evidence judgement', exact: true })).toHaveCount(0);
-  await page.getByRole('link', { name: 'Open review', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Open review', exact: true })).toHaveCount(0);
+  await page.goto(findingUrl.replace('/app/findings/','/app/reviews/'));
   await expect(page.getByRole('heading', { name: 'Inspect. Record. Explain.' })).toBeVisible();
   const review = page.locator('[data-review-form]');
   const steps = page.getByRole('navigation', { name: 'Review steps', exact: true });
