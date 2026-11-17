@@ -1,6 +1,6 @@
 import { CHECKLIST_MAPPING_VERSION, awsIamChecklistMappings } from './checklist-mapping';
 import { z } from 'zod';
-import { protocolSchema, type Protocol } from './contracts';
+import { dateSchema, protocolSchema, type Protocol } from './contracts';
 
 // Founder-requested first integrated protocol. Candidate method; not independently validated.
 export const AWS_IAM_VERSION = '0.2.0-checklist-candidate';
@@ -22,7 +22,7 @@ export const assessmentFields = [
   { id: 'deadline', label: 'Confirmed finding deadline (optional)', type: 'date' },
 ] as const;
 export const engineEntrySchema = z.object({ value: z.string().max(200), basis: z.string().max(2000), evidenceIds: z.array(z.string().uuid()).max(30), locator: z.string().max(500) }).strict();
-export const engineDraftSchema = z.object({ version: z.enum(['0.1.0-candidate', AWS_IAM_VERSION, '0.3.0-checklist-candidate', '0.1.0-checklist-candidate']), protocolCode:z.string().min(1).max(100).optional(), entries: z.record(z.string(), engineEntrySchema) }).strict();
+export const engineDraftSchema = z.object({ version: z.enum(['0.1.0-candidate', AWS_IAM_VERSION, '0.3.0-checklist-candidate', '0.1.0-checklist-candidate']), protocolCode:z.string().min(1).max(100).optional(), entries: z.record(z.string(), engineEntrySchema), dateDecisions:z.record(z.string(),z.object({value:dateSchema,reason:z.string().max(2000),candidates:z.array(z.object({value:dateSchema,source:z.string().max(1000)}))}).strict()).optional() }).strict();
 export type EngineDraft = z.infer<typeof engineDraftSchema>;
 export const emptyEngineDraft = (): EngineDraft => ({ version: AWS_IAM_VERSION, entries: {} });
 export const recommendationLabels = {

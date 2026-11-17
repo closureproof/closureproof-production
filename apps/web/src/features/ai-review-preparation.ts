@@ -1,3 +1,4 @@
+import {normaliseDate} from '@closureproof/document-contracts';
 import { dateSchema } from '@closureproof/assessment-engine';
 import { assessmentMethod, newProtocolDraft } from '@closureproof/assessment-engine/protocol-catalogue';
 import { activeSections } from './control-scope';
@@ -6,7 +7,7 @@ import { storageResult } from './soa-assessment';
 import { aiReviewSchema, type ProposalFact, type PreparedReview } from '../lib/ai-review-contract';
 import type { ManualFinding, ManualCheck } from '../lib/manual-api';
 
-export function prepareAIReview(raw:unknown,finding:Pick<ManualFinding,'protocol'>,facts:ProposalFact[]):PreparedReview {
+export function prepareAIReview(raw:unknown,finding:Pick<ManualFinding,'protocol'>&{details?:Record<string,unknown>},facts:ProposalFact[]):PreparedReview {
   const output=aiReviewSchema.parse(raw);const method=assessmentMethod(finding.protocol.code);
   if(!method)throw Error('No assessment method is available for this category.');
   const sourceWarnings:string[]=[];
@@ -17,7 +18,7 @@ export function prepareAIReview(raw:unknown,finding:Pick<ManualFinding,'protocol
   for(const check of output.checklist)if(!check.source_refs.length&&(check.implementation_status!=='not_assessed'||check.applicability!=='under_review')){
     sourceWarnings.push(check.check_id+': no supporting citation was supplied; retained as Not assessed.');check.applicability='under_review';check.implementation_status='not_assessed';check.rationale='The proposed answer had no supporting source citation. Relevant evidence must be linked and inspected before this item can be assessed.';
   }
-  for(const entry of output.engine)if(entry.value&&!entry.source_refs.length){sourceWarnings.push(entry.field_id+': uncited proposed value was left unknown.');entry.value=null;}
+  for(const entry of output.engine)if(entry.value&&!entry.source_refs.length){if(entry.field_id!=='deadline'||!normaliseDate(finding.details?.deadline))sourceWarnings.push(entry.field_id+': uncited proposed value was left unknown.');entry.value=null;}
   for(const entry of output.judgements)if(entry.value&&!entry.source_refs.length&&!unknownChoices.includes(entry.value)&&!gapFields.has(entry.field)&&!entry.field.endsWith('_requirement_reason')&&!(entry.field==='followup_status'&&entry.value==='Required')&&!(entry.field==='limitations_status'&&entry.value==='Identified')){
     const field=proposalFields.find(field=>field.key===entry.field);entry.value=field?.options?.find(value=>unknownChoices.includes(value))||null;sourceWarnings.push(entry.field+': uncited proposed judgement was left unresolved.');
   }
@@ -42,7 +43,8 @@ export function prepareAIReview(raw:unknown,finding:Pick<ManualFinding,'protocol
   const engine=newProtocolDraft(finding.protocol.code);seen.clear();
   for(const proposal of output.engine){
     const field=method.fields.find(f=>f.id===proposal.field_id);if(!field||seen.has(field.id))throw Error('Document analysis returned an unknown or duplicate engine field.');seen.add(field.id);
-    const refs=cited(proposal.source_refs,proposal.value!==null&&proposal.value!=='');const value=proposal.value||'';
+    const refs=cited(proposal.source_refs,proposal.value!==null&&proposal.value!=='');const value=field.type==='date'?(normaliseDate(proposal.value)||''):proposal.value||'';
+    if(field.type==='date'&&proposal.value&&!value)sourceWarnings.push(field.label+': clarify the ambiguous or invalid date against its source.');
     if(value&&(field.type==='boolean'&&!['true','false'].includes(value)||field.type==='integer'&&(!/^\d+$/.test(value)||Number(value)>36500)||field.type==='date'&&!dateSchema.safeParse(value).success||field.type==='retest'&&!['pending','satisfactory','unsatisfactory'].includes(value)))throw Error('Document analysis returned an invalid typed engine value.');
     engine.entries[field.id]={value,basis:proposal.rationale,locator:refs.map(f=>`${f.filename}: ${f.page?'p'+f.page+' ':''}${f.locator}`).join('; ').slice(0,500),evidenceIds:[...new Set(refs.map(f=>f.evidenceId))]};
   }
@@ -53,10 +55,15 @@ export function prepareAIReview(raw:unknown,finding:Pick<ManualFinding,'protocol
     const unknown=['Not yet established','Not established','Other / not established'].includes(proposal.value||'');
     const gapField=proposal.field.endsWith('_requirement_reason')||proposal.field==='followup_status'&&proposal.value==='Required'||proposal.field==='limitations_status'&&proposal.value==='Identified'||['required_evidence','evidence_gaps','remaining_actions','limitations_overrides','retest_pending_actions','exceptions_status_reason'].includes(proposal.field);
     const refs=cited(proposal.source_refs,!!proposal.value&&!unknown&&!gapField);if(!proposal.value)continue;
+    if(allowedField.field.type==='date'){const date=normaliseDate(proposal.value);if(!date){sourceWarnings.push(allowedField.field.label+': clarify the ambiguous or invalid date against its source.');continue;}proposal.value=date;}
     if(allowedField.field.options&&!allowedField.field.options.includes(proposal.value))throw Error('Document analysis returned an invalid judgement choice.');
     if(allowedField.field.type==='date'&&!dateSchema.safeParse(proposal.value).success||allowedField.field.type==='number'&&!/^\d+$/.test(proposal.value))throw Error('Document analysis returned an invalid judgement date or count.');
     (judgement as Record<string,unknown>)[proposal.field]=proposal.value;
     judgement.evidence_refs![allowedField.section]=[...new Set([...(judgement.evidence_refs![allowedField.section]||[]),...refs.map(f=>f.evidenceId)])];
+  }
+  for(const [id,key]of [['operation_start','operating_from'],['operation_end','operating_to']] as const){
+    const date=normaliseDate(judgement[key]);const proposal=output.judgements.find(entry=>entry.field===key);
+    if(date&&!engine.entries[id]?.value&&proposal?.source_refs.length){const refs=resolve(proposal.source_refs);engine.entries[id]={value:date,basis:'Operating-period date recorded in the cited evidence.',locator:refs.map(fact=>fact.filename+': '+fact.locator).join('; ').slice(0,500),evidenceIds:[...new Set(refs.map(fact=>fact.evidenceId))]};}
   }
   const populationRefs=cited(output.population.source_refs,output.population.expected!==null||output.population.reviewed!==null);
   if(populationRefs.length)judgement.evidence_refs!.population=[...new Set(populationRefs.map(f=>f.evidenceId))];

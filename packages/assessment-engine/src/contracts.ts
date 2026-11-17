@@ -1,7 +1,7 @@
 import { checklistAnswerSchema, type ChecklistMappingSnapshot } from './checklist-mapping';
 import { z } from 'zod';
 
-export const ENGINE_VERSION = '1.0.0';
+export const ENGINE_VERSION = '1.1.0';
 export const recommendations = ['not_closure_ready', 'implemented_evidence_incomplete', 'ready_for_retest', 'closure_ready'] as const;
 const id = z.string().trim().min(1).max(120);
 const text = z.string().trim().min(1).max(4000);
@@ -10,7 +10,7 @@ export const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }, 'Use a real calendar date (YYYY-MM-DD).');
 const scalar = z.union([z.boolean(), z.number().finite(), z.string().min(1).max(4000)]);
-const sourceSchema = z.object({ evidenceId: id, version: z.number().int().positive(), sha256: z.string().regex(/^[a-f0-9]{64}$/), locator: text }).strict();
+const sourceSchema = z.object({ kind:z.enum(['evidence','finding']).optional(), evidenceId: id, version: z.number().int().positive(), sha256: z.string().regex(/^[a-f0-9]{64}$/), locator: text }).strict();
 export const factSchema = z.discriminatedUnion('state', [
   z.object({ state: z.literal('unknown'), reason: text }).strict(),
   z.object({ state: z.literal('confirmed'), value: scalar, confirmedBy: text, confirmedOn: dateSchema, basis: text, sources: z.array(sourceSchema).min(1).max(100) }).strict(),
@@ -88,6 +88,7 @@ export const assessmentInputSchema = z.object({
   findingId: id, findingRevision: z.number().int().positive(), scopeRevision: z.number().int().positive(), evaluationDate: dateSchema,
   facts: z.record(z.string(), factSchema),
   checklist: z.object({ definitions: z.array(z.object({id, label:text}).strict()).max(200), answers: z.array(checklistAnswerSchema).max(200) }).strict().optional(),
+  findingContext:z.object({id,revision:z.number().int().positive(),sha256:z.string().regex(/^[a-f0-9]{64}$/),deadline:dateSchema}).strict().optional(),
   evidence: z.array(z.object({ id, version: z.number().int().positive(), sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict()).max(1000),
 }).strict();
 export type Protocol = z.infer<typeof protocolSchema>;

@@ -22,6 +22,7 @@ export function evaluateDraftProtocol(definition: Protocol, assessment: Assessme
     if (!matchesType(definitions.get(key)!.type, fact.value)) return undefined;
     if (fact.confirmedOn > input.evaluationDate) return undefined;
     if (!fact.sources.every(source => {
+      if(source.kind==='finding'){const context=input.findingContext;return key==='deadline'&&!!context&&context.id===input.findingId&&context.revision===input.findingRevision&&source.evidenceId===context.id&&source.version===context.revision&&source.sha256===context.sha256&&fact.value===context.deadline;}
       const current = evidence.get(source.evidenceId);
       return current?.version === source.version && current.sha256 === source.sha256;
     })) return undefined;
@@ -33,7 +34,7 @@ export function evaluateDraftProtocol(definition: Protocol, assessment: Assessme
     const factIds = [...new Set([predicate.fact, ...(predicate.operator === 'at_least_fact' ? [predicate.otherFact] : predicate.operator === 'observed_days' ? [predicate.endFact, predicate.daysFact] : []), ...(applicable ? [applicable.fact] : [])])];
     const evidenceIds = [...new Set(factIds.flatMap(key => {
       const fact = input.facts[key];
-      return fact?.state === 'confirmed' ? fact.sources.map(source => source.evidenceId) : [];
+      return fact?.state === 'confirmed' ? fact.sources.filter(source=>source.kind!=='finding').map(source => source.evidenceId) : [];
     }))].sort();
     const base = { id: rule.id, mandatory: rule.mandatory, factIds, evidenceIds };
     if (applicable) {

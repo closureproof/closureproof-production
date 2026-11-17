@@ -1,4 +1,4 @@
-import { REVIEW_COMPLETION_CHECKS_SUSPENDED } from '../review-completion-policy';
+import {normaliseDate} from '@closureproof/document-contracts';
 import { validateAppliedProposal } from './ai-review-preparation';
 import {assessmentMethod,PROTOCOL_ENGINE_VERSION} from '@closureproof/assessment-engine/protocol-catalogue';
 import { checklistAnswerSchema } from '@closureproof/assessment-engine/checklist-mapping';
@@ -36,9 +36,22 @@ export async function evaluateAssessment(raw: unknown) {
   const date = new Date().toISOString().slice(0,10);
   const facts: AssessmentInput['facts'] = {};
   const entries = request.draft.entries;
+  const savedDeadline=normaliseDate(basis.finding.details.deadline);
+  const dateDecision=request.draft.dateDecisions?.deadline;
+  const chosenDeadline=dateDecision?.value||savedDeadline;
+  for(const [id,decision]of Object.entries(request.draft.dateDecisions||{})){
+    if(!['deadline','operation_start','operation_end','retest_date'].includes(id))throw new AnalysisError('Unknown assessment date decision.');
+    if(new Set(decision.candidates.map(candidate=>candidate.value)).size>1&&decision.reason.trim().length<10)throw new AnalysisError('Resolve the different dates in Review dates and explain the selection before evaluating.');
+  }
+  const findingContext=chosenDeadline?{id:request.findingId,revision:request.revision,deadline:chosenDeadline,sha256:contentHash({details:basis.finding.details,revision:request.revision,decision:dateDecision||null})}:undefined;
   for(const field of assessmentFields) {
     if(field.conditional && entries[field.conditional]?.value === 'false') continue;
     const entry = entries[field.id];
+    if(field.id==='deadline'&&findingContext){
+      if(dateDecision&&savedDeadline&&chosenDeadline!==savedDeadline&&dateDecision.reason.trim().length<10)throw new AnalysisError('Explain the selected finding deadline in Review dates before evaluating.');
+      if(entry?.value&&normaliseDate(entry.value)!==chosenDeadline)throw new AnalysisError('Resolve the different finding deadlines in Review dates before evaluating.');
+      facts.deadline={state:'confirmed',value:chosenDeadline!,confirmedBy:request.reviewer,confirmedOn:date,basis:dateDecision?.reason||'Current deadline recorded on the submitted finding.',sources:[{kind:'finding',evidenceId:request.findingId,version:request.revision,sha256:findingContext.sha256,locator:'Finding deadline'+(dateDecision?' - recorded reviewer date decision':'')}]};continue;
+    }
     if(!entry || !entry.value || entry.value === 'unknown') { facts[field.id]={ state:'unknown',reason:entry?.basis?.trim() || 'Not established by the reviewer.' }; continue; }
     if(entry.basis.trim().length<10 || entry.locator.trim().length<2 || !entry.evidenceIds.length) throw new AnalysisError(`${field.label}: record a basis, source location and supporting evidence.`);
     if(new Set(entry.evidenceIds).size !== entry.evidenceIds.length || entry.evidenceIds.some(id=>!evidence.some(item=>item.id===id))) throw new AnalysisError(`${field.label}: an evidence reference is unavailable, replaced or insufficient.`,409);
@@ -50,7 +63,7 @@ export async function evaluateAssessment(raw: unknown) {
     if(field.id==='deadline' && basis.finding.details.deadline && entry.value!==basis.finding.details.deadline) throw new AnalysisError('The confirmed deadline must match the finding deadline. Revise the finding if it changed.');
     facts[field.id]={ state:'confirmed',value,confirmedBy:request.reviewer,confirmedOn:date,basis:entry.basis.trim(),sources:entry.evidenceIds.map(id=>{const item=evidence.find(item=>item.id===id)!;return {evidenceId:id,version:item.version,sha256:item.sha256,locator:entry.locator.trim()};}) };
   }
-  const input: AssessmentInput={findingId:request.findingId,findingRevision:request.revision,scopeRevision:request.revision,evaluationDate:date,facts,checklist:{definitions:basis.finding.protocol.checks.map(check=>({id:check.id,label:check.label})),answers:request.checks},evidence:evidence.map(item=>({id:item.id,version:item.version,sha256:item.sha256}))};
+  const input: AssessmentInput={findingId:request.findingId,findingRevision:request.revision,scopeRevision:request.revision,evaluationDate:date,facts,...(findingContext?{findingContext}:{}),checklist:{definitions:basis.finding.protocol.checks.map(check=>({id:check.id,label:check.label})),answers:request.checks},evidence:evidence.map(item=>({id:item.id,version:item.version,sha256:item.sha256}))};
   const evaluation=evaluateDraftProtocol(protocol,input);
   const protocolHash=contentHash(protocol);
   const evaluationHash=contentHash({basis,input,protocolHash,evaluation});
@@ -59,7 +72,6 @@ export async function evaluateAssessment(raw: unknown) {
 }
 export async function previewAssessment(raw: unknown) { const {basis:_,...result}=await evaluateAssessment(raw);return {...result,validationStatus:'candidate' as const}; }
 export async function completeAssessment(raw: unknown) {
-  if(REVIEW_COMPLETION_CHECKS_SUSPENDED)return completeUnrestrictedAssessment(raw);
   const request=completionRequest.parse(raw);
   const review=request.review as unknown as ReviewInput;
   const requestHash=contentHash(request);
@@ -75,6 +87,9 @@ export async function completeAssessment(raw: unknown) {
   if(selection.disposition==='accept' && review.recommendation!==recommendationLabels[computed])throw new AnalysisError('The accepted recommendation must match the engine result.');
   if(selection.disposition==='override' && ((selection.overrideReason||'').trim().length<20 || !selection.overrideEvidenceIds?.length || selection.overrideEvidenceIds.some(id=>!result.input.evidence.some(item=>item.id===id))))throw new AnalysisError('Provide an override reason of at least 20 characters and current supporting evidence.');
   const j=review.closure_judgement;
+  const retestDate=normaliseDate(j?.retest_date);const implementationDate=normaliseDate((basis.finding.details as Record<string,unknown>).implementation_date);
+  if(retestDate&&implementationDate&&retestDate<implementationDate)throw new AnalysisError('The retest date is before implementation. Resolve the dates before completing.');
+  for(const [id,key]of [['operation_start','operating_from'],['operation_end','operating_to'],['retest_date','retest_date']] as const){const selected=selection.draft.dateDecisions?.[id];if(selected&&normaliseDate(j?.[key])!==selected.value)throw new AnalysisError('The selected review date and judgement differ. Resolve Review dates before completing.');}
   for(const [factKey,module] of [['operation_required','operation'],['retest_required','retest']] as const) {
     const value=result.input.facts[factKey];
     const decision=j?.[`${module}_requirement`];
@@ -97,12 +112,4 @@ export async function completeAssessment(raw: unknown) {
   const snapshot: RulesSnapshot={...result,protocol:{code:protocol.code,version:protocol.version},protocolDefinition:protocol,validationStatus:'candidate',disposition:selection.disposition,overrideReason:selection.overrideReason||'',overrideEvidenceIds:selection.overrideEvidenceIds||[],recordedRecommendation:review.recommendation!,reviewer:review.reviewer};
   const assessmentId=await rpc<string>('cpp_complete_engine_review',{p_finding:request.findingId,p_revision:request.revision,p_basis:basis,p_review:review,p_snapshot:snapshot,p_request:request.requestId,p_hash:requestHash,p_supersedes:request.supersedes});
   return {assessmentId};
-}
-
-export async function completeUnrestrictedAssessment(raw:unknown){
- if(!REVIEW_COMPLETION_CHECKS_SUSPENDED)throw new AnalysisError('Use the standard review completion workflow.',404);
- const request=completionRequest.parse(raw);
- const {data,error}=await analysisAdmin().rpc('cpp_complete_review_unrestricted',{p_finding:request.findingId,p_revision:request.revision,p_review:request.review,p_request_id:request.requestId,p_supersedes:request.supersedes});
- if(error)throw new AnalysisError(['PGRST202','42883'].includes(error.code)?'Run 20261115000100_unrestricted_review_completion.sql in Supabase to enable the temporary completion change.':error.message,400);
- return {assessmentId:data};
 }

@@ -2,10 +2,11 @@ import type { AssessmentField } from '@closureproof/assessment-engine/protocol-c
 import type { EngineDraft } from '@closureproof/assessment-engine/aws-iam';
 
 export interface AssessmentSourceIssue { fieldId:string; label:string; missing:('basis'|'locator'|'evidence')[] }
-export function assessmentSourceIssue(fields:readonly AssessmentField[],draft:EngineDraft,currentEvidenceIds:string[]):AssessmentSourceIssue|null {
+export function assessmentSourceIssue(fields:readonly AssessmentField[],draft:EngineDraft,currentEvidenceIds:string[],findingDeadline?:string|null):AssessmentSourceIssue|null {
   for(const field of fields){
     if(field.conditional&&draft.entries[field.conditional]?.value==='false')continue;
     const entry=draft.entries[field.id];
+    if(field.id==='deadline'&&(findingDeadline||draft.dateDecisions?.deadline))continue;
     if(!entry?.value||entry.value==='unknown')continue;
     const missing:AssessmentSourceIssue['missing']=[];
     if(entry.basis.trim().length<10)missing.push('basis');

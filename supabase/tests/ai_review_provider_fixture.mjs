@@ -11,6 +11,7 @@ export function reviewProviderFixture(body){
   population:{expected:121,reviewed:121,source_refs:[key]},exceptions:[],summary:'The synthetic source records support the documented correction and full population review; this is a proposed review summary.',next_actions:'',limitations:[],conflicts:[],
  };
  if(String(context.finding.details.title).includes('Large multi-document review'))output.checklist[0].source_refs=context.facts.map(fact=>fact.key);
+ if(String(context.finding.details.title).includes('Date conflict review')){const deadline=output.engine.find(field=>field.field_id==='deadline');deadline.value='2026-12-18';deadline.source_refs=[key];deadline.rationale='The synthetic source records a deadline of 18 December 2026.';}
  if(String(context.finding.details.title).includes('Unsupported AI source'))output.engine[0].source_refs=['nonexistent-fact'];
  return {status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(output)}]}],usage:{input_tokens:100,output_tokens:100}};
 }

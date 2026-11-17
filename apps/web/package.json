@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "next typegen && tsc --noEmit",
-    "test:db": "node scripts/test-supabase-sql.mjs && node scripts/test-supabase-legacy.mjs && node scripts/test-public-pilot.mjs && node scripts/test-iso27001.mjs && node scripts/test-review-workflow.mjs && node scripts/test-control-scopes.mjs && node scripts/test-simplified-judgement.mjs && node scripts/test-conditional-judgement.mjs && node scripts/test-ai-extraction.mjs && node scripts/test-assessment-engine.mjs && node scripts/test-ai-review-preparation.mjs && node scripts/test-review-requests.mjs && node scripts/test-demo-notifications.mjs && node scripts/test-request-security.mjs && node scripts/test-readable-references.mjs && node scripts/test-multi-document-review.mjs && node scripts/test-unrestricted-review.mjs",
+    "test:db": "node scripts/test-supabase-sql.mjs && node scripts/test-supabase-legacy.mjs && node scripts/test-public-pilot.mjs && node scripts/test-iso27001.mjs && node scripts/test-review-workflow.mjs && node scripts/test-control-scopes.mjs && node scripts/test-simplified-judgement.mjs && node scripts/test-conditional-judgement.mjs && node scripts/test-ai-extraction.mjs && node scripts/test-assessment-engine.mjs && node scripts/test-ai-review-preparation.mjs && node scripts/test-review-requests.mjs && node scripts/test-demo-notifications.mjs && node scripts/test-request-security.mjs && node scripts/test-readable-references.mjs && node scripts/test-multi-document-review.mjs",
     "check:supabase": "node scripts/check-supabase.mjs",
     "start": "next start --hostname 127.0.0.1"
   },

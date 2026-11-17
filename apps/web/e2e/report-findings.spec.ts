@@ -77,6 +77,7 @@ await expect(page.getByRole('link',{name:'Open finding and evidence',exact:true}
  await expect(page.getByLabel('Search submissions',{exact:true})).toBeVisible();
 
  await page.goto('/app/findings');
+ await page.getByLabel('Search findings',{exact:true}).fill(run.id);
  const findingsReportCard=page.getByRole('button',{name:'View findings for '+run.filename,exact:true});
  await expect(findingsReportCard).toContainText('2 finding(s) · 2 evidence file(s)');
  await findingsReportCard.click();

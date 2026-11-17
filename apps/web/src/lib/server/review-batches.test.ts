@@ -15,3 +15,7 @@ it('merges references from every batch and leaves conflicting facts unknown',()=
 it('keeps agreed answers while retaining all their references',()=>{
  const merged=mergeReviewBatches([output('true','run:0'),output('true','run:1')],context);expect(merged.engine[0].value).toBe('true');expect(merged.engine[0].source_refs).toEqual(['run:0','run:1']);
 });
+it('keeps date-only disagreements separate from substantive assessment conflicts',()=>{
+ const first=output('2026-11-30','run:0'),second=output('2026-12-18','run:1');first.engine[0].field_id='deadline';second.engine[0].field_id='deadline';
+ const merged=mergeReviewBatches([first,second],context);expect(merged.engine[0].value).toBeNull();expect(merged.engine[0].source_refs).toEqual(['run:0','run:1']);expect(merged.conflicts).toEqual([]);
+});

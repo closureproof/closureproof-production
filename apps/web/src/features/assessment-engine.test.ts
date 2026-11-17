@@ -187,3 +187,9 @@ describe('first integrated AWS IAM candidate', () => {
     expect(evaluateDraftProtocol(awsIamCandidate,assessment).recommendation).toBe('closure_ready');
   });
 });
+
+it('finding-date context cannot establish a remediation or effectiveness fact',()=>{
+ const assessment=input();assessment.findingContext={id:assessment.findingId,revision:assessment.findingRevision,sha256,deadline:'2026-11-30'};
+ assessment.facts.implementation={...fact(true),sources:[{kind:'finding',evidenceId:assessment.findingId,version:assessment.findingRevision,sha256,locator:'Finding details'}]};
+ expect(evaluateDraftProtocol(definition(),assessment).rules.find(rule=>rule.id==='implementation')?.status).toBe('unknown');
+});

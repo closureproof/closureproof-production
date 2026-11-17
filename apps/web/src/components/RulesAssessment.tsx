@@ -21,13 +21,14 @@ export function RulesAssessment({finding,checks,draft,onDraft,selection,onSelect
   }
   async function evaluate(button:HTMLButtonElement){
     setError('');onPreview(null);onSelection({...selection,disposition:'',evaluationHash:''});
-    const issue=assessmentSourceIssue(assessmentFields,draft,files.map(file=>file.id));
+    const issue=assessmentSourceIssue(assessmentFields,draft,files.map(file=>file.id),finding.deadline);
     if(issue&&onSourceIssue){onSourceIssue(issue);return;}
     setBusy(true);
     try{const reviewer=button.closest('form')?.querySelector<HTMLInputElement>('[name="reviewer"]')?.value||'';const result=await enginePost<EnginePreview>('evaluate',{findingId:finding.id,revision:finding.revision,reviewer,draft,checks});onPreview(result);onSelection({...selection,draft,evaluationHash:result.evaluationHash,disposition:''});}
     catch(error){setError(error instanceof Error?error.message:'Assessment failed.');onPreview(null);}finally{setBusy(false);}
   }
   return <fieldset disabled={busy} className="space-y-5 rounded-2xl border border-accent/30 p-5"><legend className="px-2 font-semibold">Rules-supported assessment</legend>{panel!=='result'&&<><p className="text-xs leading-6 text-muted">{method.protocol.title} {method.protocol.version} is a draft closure protocol awaiting independent validation. Confirm finding-specific facts against evidence. The engine reuses the scoped checklist assessments and references below. The additional decisions establish finding-specific closure readiness; Implemented alone is insufficient. There is no default operating period.</p><p className="text-xs leading-6 text-muted">Evidence for this protocol: {method.evidenceGuidance}</p><details className="rounded-xl border border-line p-4"><summary className="cursor-pointer text-sm font-semibold">Checklist requirements used by this assessment</summary><ul className="mt-3 space-y-3 text-xs leading-6">{mapping.rows.map(row=><li key={row.checkId}><strong>{row.label}: {row.status}</strong><p>Applies to: {row.requirementIds.map(id=>assessmentFields.find(field=>field.id===id)?.label||id).join('; ')||'Mapping required'} · {row.implementationStatus.replaceAll('_',' ')}</p><p>{row.reason}</p></li>)}</ul></details><div className="space-y-4">{assessmentFields.filter(field=>!field.conditional||draft.entries[field.conditional]?.value==='true').map(field=>{
+    if(field.type==='date')return null;
     const entry=draft.entries[field.id]||{value:'',basis:'',locator:'',evidenceIds:[]};
     const linked=mapping.rows.filter(row=>row.requirementIds.includes(field.id)&&row.status!=='excluded');
     if(reused[field.id])return <div key={field.id} className="rounded-xl border border-line bg-soft/30 p-3 text-xs leading-6"><strong>{field.label}</strong><p>{entry.value==='true'?'Yes':entry.value==='false'?'No':entry.value||'Not established'} · Reused from {reused[field.id]}</p></div>;

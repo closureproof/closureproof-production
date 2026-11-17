@@ -14,7 +14,7 @@ export const aiReviewSchema=z.object({
 }).strict();
 export type AIReviewOutput=z.infer<typeof aiReviewSchema>;
 export interface ProposalFact {key:string;runId:string;index:number;evidenceId:string;version:number;sha256:string;filename:string;label:string;value:string;quote:string;locator:string;page:number|null}
-export interface PreparedReview {checks:ManualCheck[];engine:EngineDraft;judgement:ClosureJudgement;expected:number|null;reviewed:number|null;exceptions:ExceptionEntry[];conclusion:string;sourceWarnings:string[];nextActions:string;sourceKeys:string[]}
+export interface PreparedReview {dateCandidates?:{id:string;value:string;source:string}[];checks:ManualCheck[];engine:EngineDraft;judgement:ClosureJudgement;expected:number|null;reviewed:number|null;exceptions:ExceptionEntry[];conclusion:string;sourceWarnings:string[];nextActions:string;sourceKeys:string[]}
 export interface ReviewProposal {id:string;finding_id:string;finding_revision:number;source_fingerprint:string;model:string;created_at:string;status:'ready';output:AIReviewOutput;prepared:PreparedReview;facts:ProposalFact[]}
 export interface AppliedReviewProposal {id:string;source_fingerprint:string;reviewer:string;applied_at:string}
 export interface ReviewProposalSnapshot extends AppliedReviewProposal {model:string;generated_at:string;proposal_hash:string;limitations:string[];conflicts:string[];source_keys:string[]}

@@ -65,5 +65,5 @@ export function assessmentMethod(code:string):AssessmentMethod|undefined{return 
 export function newProtocolDraft(code:string,previous?:EngineDraft):EngineDraft{
  const method=assessmentMethod(code);if(!method)throw Error('No rules-supported protocol for this finding category.');
  if(previous?.protocolCode&&previous.protocolCode!==code)throw Error('Saved facts belong to another protocol.');
- return {version:method.protocol.version as EngineDraft['version'],protocolCode:code,entries:previous?.entries||{}};
+ return {version:method.protocol.version as EngineDraft['version'],protocolCode:code,entries:previous?.entries||{},...(previous?.dateDecisions?{dateDecisions:previous.dateDecisions}:{})};
 }

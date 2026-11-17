@@ -1,3 +1,5 @@
+import {normaliseDate} from './dates';
+export {normaliseDate} from './dates';
 import { z } from 'zod';
 export const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 export const DOCUMENT_LIMIT = 25 * 1024 * 1024;
@@ -28,6 +30,7 @@ export function checkExtraction(value:unknown, mode:'report'|'evidence', mime:st
   if(mode==='report'&&result.facts.length||mode==='evidence'&&result.findings.length)throw Error('The document analysis returned the wrong output type.');
   if(result.coverage==='unreadable'&&(result.facts.length||result.findings.length))throw Error('Unreadable content cannot produce usable suggestions.');
   for(const draft of result.findings){
+    for(const key of ['deadline','implementation_date'] as const)if(draft.fields[key])draft.fields[key]=normaliseDate(draft.fields[key]);
     for(const key of findingKeys){if(draft.fields[key]!==null&&!draft.sources.some(source=>source.field===key))throw Error(`Missing source reference for ${key}.`);}
     if(!draft.fields.title&&!draft.fields.description)throw Error('A draft finding needs at least a cited title or description.');
   }

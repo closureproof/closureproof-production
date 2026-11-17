@@ -1,3 +1,4 @@
+import {assessmentMethod} from '@closureproof/assessment-engine/protocol-catalogue';
 import type {AIReviewOutput,ProposalFact} from '../ai-review-contract';
 import type {ReviewContext} from './ai-review-preparation';
 import {activeSections} from '../../features/control-scope';
@@ -23,13 +24,13 @@ export function mergeReviewBatches(outputs:AIReviewOutput[],context:ReviewContex
   return {...first,check_id,...(states.length>1?{applicability:'under_review' as const,implementation_status:'not_assessed' as const}:{}),rationale:note(relevant.map(item=>item.rationale),1500),source_refs:unique(all.flatMap(item=>item.source_refs))};
  });
  const engine=group(outputs.flatMap(output=>output.engine),item=>item.field_id).map(([field_id,all])=>{
-  const values=unique(all.flatMap(item=>item.value===null?[]:[item.value]));if(values.length>1)conflicts.push(field_id+': evidence batches propose different assessment values.');
+  const values=unique(all.flatMap(item=>item.value===null?[]:[item.value]));if(values.length>1&&assessmentMethod(context.finding.protocol.code)?.fields.find(field=>field.id===field_id)?.type!=='date')conflicts.push(field_id+': evidence batches propose different assessment values.');
   return {field_id,value:values.length===1?values[0]:null,rationale:note(all.map(item=>item.rationale),1500),source_refs:unique(all.flatMap(item=>item.source_refs))};
  });
  const judgements=group(outputs.flatMap(output=>output.judgements),item=>item.field).map(([field,all])=>{
   const definition=fields.get(field);const values=unique(all.flatMap(item=>item.value===null||['Not yet established','Not established','Other / not established'].includes(item.value)?[]:[item.value]));
   const constrained=!!definition?.options||!!definition?.type;
-  if(constrained&&values.length>1)conflicts.push(field+': evidence batches propose different reviewer judgements.');
+  if(constrained&&values.length>1&&definition?.type!=='date')conflicts.push(field+': evidence batches propose different reviewer judgements.');
   return {field,value:constrained?(values.length===1?values[0]:null):values.length?note(values,2000):null,source_refs:unique(all.flatMap(item=>item.source_refs))};
  });
  const population={expected:null as number|null,reviewed:null as number|null,source_refs:unique(outputs.flatMap(output=>output.population.source_refs))};

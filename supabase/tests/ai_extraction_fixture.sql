@@ -63,3 +63,17 @@ begin
  return jsonb_build_object('finding_id',r.finding_id);
 end$$;
 grant execute on function public.cpp_test_ai_large_review() to anon;
+-- TEST ONLY: current finding deadline and an independently cited conflicting date.
+create or replace function public.cpp_test_ai_date_review() returns jsonb language plpgsql security definer set search_path='' as $$
+declare seed jsonb; r public.cpp_ai_runs; result jsonb;
+begin
+ seed:=public.cpp_test_ai_prepared_review('Date conflict review');
+ select * into r from public.cpp_ai_runs where id=(seed->>'id')::uuid;
+ result:=jsonb_set(r.result,'{facts,0,value}',to_jsonb((r.result#>>'{facts,0,value}')||' Original agreed deadline: 18 December 2026.'));
+ result:=jsonb_set(result,'{facts,0,quote}',to_jsonb((r.result#>>'{facts,0,quote}')||' Original agreed deadline: 18 December 2026.'));
+ delete from public.cpp_ai_runs where id=r.id;
+ insert into public.cpp_ai_runs select (jsonb_populate_record(null::public.cpp_ai_runs,to_jsonb(r)||jsonb_build_object('result',result))).*;
+ update public.cpp_findings set details=details||'{"deadline":"2026-11-30","implementation_date":"2026-11-09"}'::jsonb where id=(seed->>'finding_id')::uuid;
+ return seed;
+end$$;
+grant execute on function public.cpp_test_ai_date_review() to anon;

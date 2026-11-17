@@ -1,4 +1,3 @@
-vi.mock('../review-completion-policy',()=>({REVIEW_COMPLETION_CHECKS_SUSPENDED:false}));
 import {assessmentMethod} from '@closureproof/assessment-engine/protocol-catalogue';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { awsIamCandidate, emptyEngineDraft, type EngineDraft } from '@closureproof/assessment-engine/aws-iam';
@@ -50,4 +49,18 @@ it('uses a durable prior result before reevaluating an already completed request
 it('does not treat an unresolved requirement decision as an approved waiver',async()=>{
  const data=draft();const preview=await previewAssessment({findingId:id,revision:2,reviewer:'Reviewer Casey',draft:data,checks});
  await expect(completeAssessment({findingId:id,revision:2,requestId:'33333333-3333-4333-8333-333333333333',supersedes:null,review:{reviewer:'Reviewer Casey',recommendation:'Closure ready',checks,closure_judgement:{operation_requirement:'Not yet established',retest_requirement:'Not required'},engine_request:{draft:data,evaluationHash:preview.evaluationHash,disposition:'accept',overrideReason:'',overrideEvidenceIds:[]}}})).rejects.toThrow('requirement disagrees');
+});
+
+it('uses the persisted finding deadline as scheduling context without inventing remediation evidence',async()=>{
+ (basis.finding as any).details.deadline='2026-11-30';const data=draft();
+ const preview=await previewAssessment({findingId:id,revision:2,reviewer:'Reviewer Casey',draft:data,checks});
+ expect(preview.input.facts.deadline).toMatchObject({state:'confirmed',value:'2026-11-30',sources:[{kind:'finding',evidenceId:id,version:2}]});
+ expect(preview.input.evidence.map(file=>file.id)).not.toContain(id);
+});
+it('requires an explicit reason to resolve deadline disagreement and preserves the decision',async()=>{
+ (basis.finding as any).details.deadline='2026-11-30';const data=draft();data.entries.deadline={value:'2026-12-18',basis:'',locator:'',evidenceIds:[]};
+ data.dateDecisions={deadline:{value:'2026-12-18',reason:'',candidates:[{value:'2026-11-30',source:'Current finding'},{value:'2026-12-18',source:'Audit report'}]}};
+ await expect(previewAssessment({findingId:id,revision:2,reviewer:'Reviewer Casey',draft:data,checks})).rejects.toThrow('Resolve the different dates');
+ data.dateDecisions.deadline.reason='The original audit report establishes the agreed deadline.';
+ const preview=await previewAssessment({findingId:id,revision:2,reviewer:'Reviewer Casey',draft:data,checks});expect(preview.input.facts.deadline).toMatchObject({state:'confirmed',value:'2026-12-18',basis:data.dateDecisions.deadline.reason});
 });
