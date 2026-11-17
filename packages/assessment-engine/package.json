@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./publication": "./src/publication.ts",
+    "./review-contracts": "./src/review-contracts.ts",
     "./aws-iam": "./src/aws-iam.ts",
     "./checklist-mapping": "./src/checklist-mapping.ts",
     "./protocol-catalogue": "./src/protocol-catalogue.ts"

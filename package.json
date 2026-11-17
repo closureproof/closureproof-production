@@ -16,9 +16,12 @@
     "test": "turbo run test",
     "test:db": "turbo run test:db",
     "test:e2e": "turbo run test:e2e",
-    "check:supabase": "turbo run check:supabase"
+    "check:supabase": "turbo run check:supabase",
+    "format": "prettier --write \"apps/web/src/**/*.{ts,tsx,css}\" \"apps/web/e2e/**/*.ts\" \"apps/web/scripts/*.mjs\" \"apps/web/*.ts\" \"apps/web/*.mjs\" \"packages/*/src/**/*.ts\"",
+    "format:check": "prettier --check \"apps/web/src/**/*.{ts,tsx,css}\" \"apps/web/e2e/**/*.ts\" \"apps/web/scripts/*.mjs\" \"apps/web/*.ts\" \"apps/web/*.mjs\" \"packages/*/src/**/*.ts\""
   },
   "devDependencies": {
+    "prettier": "3.10.1",
     "turbo": "^2.11.10"
   },
   "engines": {

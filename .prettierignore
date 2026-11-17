@@ -1,0 +1,14 @@
+node_modules/
+**/node_modules/
+**/.next/
+**/.turbo/
+**/dist/
+**/test-results/
+**/playwright-report/
+apps/web/next-env.d.ts
+apps/web/public/
+supabase/
+docs/
+.env*
+**/.env*
+package-lock.json

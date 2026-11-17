@@ -6,7 +6,7 @@ import 'server-only';
 import { z } from 'zod';
 import { evaluateDraftProtocol, dateSchema, type AssessmentInput } from '@closureproof/assessment-engine';
 import { contentHash } from '@closureproof/assessment-engine/publication';
-import { engineDraftSchema, recommendationLabels } from '@closureproof/assessment-engine/aws-iam';
+import { engineDraftSchema, recommendationLabels } from '@closureproof/assessment-engine/review-contracts';
 import { analysisAdmin, AnalysisError } from './document-analysis';
 import type { ReviewInput } from '../manual-api';
 import type { RulesSnapshot } from '../rules-assessment';

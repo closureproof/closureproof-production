@@ -1,7 +1,7 @@
 import {expect,it} from 'vitest';
 import {normaliseDate,checkExtraction} from '@closureproof/document-contracts';
 import {reviewDates,populateReviewDates} from './review-dates';
-import type {EngineDraft} from '@closureproof/assessment-engine/aws-iam';
+import type {EngineDraft} from '@closureproof/assessment-engine/review-contracts';
 const draft=(entries:EngineDraft['entries']={}):EngineDraft=>({version:'0.3.0-checklist-candidate',entries});
 const entry=(value:string)=>({value,basis:'Cited document date',locator:'Recovery record, section 2',evidenceIds:['file']});
 it.each([['30 November 2026','2026-11-30'],['18 Dec 2026','2026-12-18'],['November 30, 2026','2026-11-30'],['30/11/2026','2026-11-30'],['11/30/2026','2026-11-30'],['2028-02-29','2028-02-29'],['2026-02-29',null],['2026-11-31',null],['03/04/2026',null],['2026-11-30T23:00:00Z',null],['Not established',null]])('normalises %s without guessing ambiguous dates',(value,expected)=>{expect(normaliseDate(value)).toBe(expected);});

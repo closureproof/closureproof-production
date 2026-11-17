@@ -1,4 +1,4 @@
-import type {EngineDraft} from '@closureproof/assessment-engine/aws-iam';
+import type {EngineDraft} from '@closureproof/assessment-engine/review-contracts';
 import type {ClosureJudgement} from '../features/review-judgement';
 import {reviewDates,populateReviewDates} from '../features/review-dates';
 import {Field} from './ui';

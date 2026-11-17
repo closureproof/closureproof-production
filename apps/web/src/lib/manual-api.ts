@@ -1,6 +1,6 @@
 import type { AppliedReviewProposal, ReviewProposalSnapshot } from './ai-review-contract';
 import type { ReviewSources } from '../features/review-reuse';
-import type { EngineDraft } from '@closureproof/assessment-engine/aws-iam';
+import type { EngineDraft } from '@closureproof/assessment-engine/review-contracts';
 import type { EngineRequest, RulesSnapshot } from './rules-assessment';
 import { DOCX_MIME, type ConfirmedFactSnapshot, type ReportSource } from '@closureproof/document-contracts';
 import type { AuditEvent, Readiness } from './types';

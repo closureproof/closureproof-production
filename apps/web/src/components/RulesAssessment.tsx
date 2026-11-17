@@ -1,8 +1,8 @@
 import { assessmentSourceIssue, type AssessmentSourceIssue } from '../features/assessment-source-validation';
 import {assessmentMethod} from '@closureproof/assessment-engine/protocol-catalogue';
-import { mapAwsIamChecklist, type ChecklistAnswer } from '@closureproof/assessment-engine/checklist-mapping';
+import { mapChecklist, type ChecklistAnswer } from '@closureproof/assessment-engine/checklist-mapping';
 import { useState } from 'react';
-import { recommendationLabels, type EngineDraft } from '@closureproof/assessment-engine/aws-iam';
+import { recommendationLabels, type EngineDraft } from '@closureproof/assessment-engine/review-contracts';
 import type { EnginePreview, EngineRequest, RulesSnapshot } from '../lib/rules-assessment';
 import { enginePost } from '../lib/rules-assessment';
 import type { ManualFinding } from '../lib/manual-api';
@@ -15,7 +15,7 @@ export function RulesAssessment({finding,checks,draft,onDraft,selection,onSelect
   const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   const method=assessmentMethod(finding.protocol.code)!;const assessmentFields=method.fields;
   const files=(finding.evidence||[]).filter(file=>!finding.evidence?.some(next=>next.supersedesId===file.id)&&!['rejected','insufficient'].includes(file.disposition));
-  const mapping=mapAwsIamChecklist(finding.protocol.checks,checks,files.map(file=>file.id),method.protocol.checklistPolicy!.mappings,method.protocol.checklistPolicy!.version);
+  const mapping=mapChecklist(finding.protocol.checks,checks,files.map(file=>file.id),method.protocol.checklistPolicy!.mappings,method.protocol.checklistPolicy!.version);
   function change(id:string,patch:Partial<EngineDraft['entries'][string]>){
     if(onEntryChange)onEntryChange(id,patch);else onDraft({...draft,entries:{...draft.entries,[id]:{...(draft.entries[id]||{value:'',basis:'',locator:'',evidenceIds:[]}),...patch}}});onPreview(null);onSelection({...selection,evaluationHash:'',disposition:''});setError('');
   }

@@ -28,7 +28,7 @@ export interface ChecklistMappingRow {
   status: RuleResult['status']; reason: string;
 }
 export interface ChecklistMappingSnapshot { version: string; rows: ChecklistMappingRow[]; rules: RuleResult[] }
-export function mapChecklist(definitions: ChecklistDefinition[], answers: ChecklistAnswer[], currentEvidenceIds: string[], mappings: Record<string, readonly string[]> = awsIamChecklistMappings, version = CHECKLIST_MAPPING_VERSION): ChecklistMappingSnapshot {
+export function mapChecklist(definitions: ChecklistDefinition[], answers: ChecklistAnswer[], currentEvidenceIds: string[], mappings: Record<string, readonly string[]>, version: string): ChecklistMappingSnapshot {
   const ids = new Set(definitions.map(row=>row.id));
   if (ids.size !== definitions.length || new Set(answers.map(row=>row.check_id)).size !== answers.length || answers.some(row=>!ids.has(row.check_id))) throw Error('Checklist items must match the pinned finding scope without duplicates.');
   const rows = definitions.map(definition => {
@@ -64,4 +64,9 @@ export function applyChecklistMapping(evaluation: Evaluation, mapping: Checklist
 }
 
 // Compatibility for older callers and saved AWS IAM tooling.
-export const mapAwsIamChecklist=mapChecklist;
+export function mapAwsIamChecklist(
+  definitions: ChecklistDefinition[], answers: ChecklistAnswer[], currentEvidenceIds: string[],
+  mappings: Record<string, readonly string[]> = awsIamChecklistMappings, version = CHECKLIST_MAPPING_VERSION,
+): ChecklistMappingSnapshot {
+  return mapChecklist(definitions, answers, currentEvidenceIds, mappings, version);
+}

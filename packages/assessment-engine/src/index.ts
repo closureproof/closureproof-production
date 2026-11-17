@@ -1,4 +1,4 @@
-import { mapAwsIamChecklist, applyChecklistMapping } from './checklist-mapping';
+import { mapChecklist, applyChecklistMapping } from './checklist-mapping';
 export * from './contracts';
 import { ENGINE_VERSION, assessmentInputSchema, matchesType, protocolSchema, type AssessmentInput, type Evaluation, type Protocol, type RuleResult } from './contracts';
 
@@ -98,7 +98,7 @@ export function evaluateDraftProtocol(definition: Protocol, assessment: Assessme
     rules, missingFacts: [...new Set(rules.flatMap(rule => rule.missingFacts))].sort(), warnings,
   };
   if (protocol.checklistPolicy) {
-    const mapping=mapAwsIamChecklist(input.checklist?.definitions||[],input.checklist?.answers||[],input.evidence.map(item=>item.id),protocol.checklistPolicy.mappings,protocol.checklistPolicy.version);
+    const mapping=mapChecklist(input.checklist?.definitions||[],input.checklist?.answers||[],input.evidence.map(item=>item.id),protocol.checklistPolicy.mappings,protocol.checklistPolicy.version);
     return {...applyChecklistMapping(evaluation,mapping),checklistMapping:mapping};
   }
   return evaluation;

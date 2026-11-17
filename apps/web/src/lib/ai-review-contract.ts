@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { EngineDraft } from '@closureproof/assessment-engine/aws-iam';
+import type { EngineDraft } from '@closureproof/assessment-engine/review-contracts';
 import type { ManualCheck, ExceptionEntry } from './manual-api';
 import type { ClosureJudgement } from '../features/review-judgement';
 const refs=z.array(z.string().min(3).max(100));

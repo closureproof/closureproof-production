@@ -1,4 +1,4 @@
-import { recommendationLabels } from '@closureproof/assessment-engine/aws-iam';
+import { recommendationLabels } from '@closureproof/assessment-engine/review-contracts';
 import { documentApi } from './document-analysis';
 import { getSupabase } from './supabase';
 import { manualApi, type ManualReview } from './manual-api';

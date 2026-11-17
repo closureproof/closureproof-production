@@ -1,5 +1,5 @@
 import type { AssessmentField } from '@closureproof/assessment-engine/protocol-catalogue';
-import type { EngineDraft } from '@closureproof/assessment-engine/aws-iam';
+import type { EngineDraft } from '@closureproof/assessment-engine/review-contracts';
 
 export interface AssessmentSourceIssue { fieldId:string; label:string; missing:('basis'|'locator'|'evidence')[] }
 export function assessmentSourceIssue(fields:readonly AssessmentField[],draft:EngineDraft,currentEvidenceIds:string[],findingDeadline?:string|null):AssessmentSourceIssue|null {

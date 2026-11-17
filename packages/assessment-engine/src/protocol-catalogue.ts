@@ -1,4 +1,6 @@
-import {awsIamCandidate, assessmentFields, type EngineDraft} from './aws-iam';
+import {awsIamCandidate, assessmentFields as awsIamFields} from './aws-iam';
+import {assessmentFields, type EngineDraft} from './review-contracts';
+import {commonReadinessRules, commonReadinessDecisions, commonReadinessTiming} from './readiness-rules';
 import {protocolSchema,type Protocol} from './contracts';
 
 export const PROTOCOL_ENGINE_VERSION='1.0-ten-protocols';
@@ -52,15 +54,16 @@ const specs=[
 function buildMethod(spec:typeof specs[number]):AssessmentMethod{
  const fields:AssessmentField[]=[...assessmentFields.map(field=>({...field,label:field.id==='scope'?spec.scope:field.id==='coverage'?spec.coverage:field.label})),...spec.domains.map(([id,label])=>({id,label,type:'boolean' as const}))];
  const domainRules:Protocol['rules']=spec.domains.map(([id,label])=>({id,label,mandatory:true,predicate:{operator:'equals',fact:id,value:true},metReason:label+': supported by the reviewer-confirmed evidence.',unmetReason:label+': a material requirement remains unmet.',unknownReason:label+': not established with current confirmed evidence.'}));
- const rules=awsIamCandidate.rules.map(rule=>{const field=fields.find(field=>field.id===rule.id);return field?{...rule,label:field.label,metReason:field.label+': confirmed by reviewer with evidence.',unmetReason:field.label+': reviewer identified a gap.',unknownReason:field.label+': not established with current confirmed evidence.'}:structuredClone(rule);});
+ const baseRules=commonReadinessRules(fields);
+ const rules=baseRules.map(rule=>{const field=fields.find(field=>field.id===rule.id);return field?{...rule,label:field.label,metReason:field.label+': confirmed by reviewer with evidence.',unmetReason:field.label+': reviewer identified a gap.',unknownReason:field.label+': not established with current confirmed evidence.'}:structuredClone(rule);});
  rules.push(...domainRules);
- const decisions=awsIamCandidate.decisions.map(decision=>({...structuredClone(decision),when:[...structuredClone(decision.when),...(['pending-retest','ready'].includes(decision.id)?domainRules.map(rule=>({rule:rule.id,statuses:['met'] as ('met')[]})):[])]}));
+ const decisions=commonReadinessDecisions(baseRules).map(decision=>({...decision,when:[...decision.when,...(['pending-retest','ready'].includes(decision.id)?domainRules.map(rule=>({rule:rule.id,statuses:['met'] as ('met')[]})):[])]}));
  domainRules.forEach((rule,index)=>{decisions.push({id:'domain-unmet-'+rule.id,priority:4+index,recommendation:'not_closure_ready',reason:rule.unmetReason,when:[{rule:rule.id,statuses:['unmet']}]});decisions.push({id:'domain-unknown-'+rule.id,priority:20+index,recommendation:'implemented_evidence_incomplete',reason:rule.unknownReason,when:[{rule:'implemented',statuses:['met']},{rule:rule.id,statuses:['unknown']}]});});
- const protocol=protocolSchema.parse({...awsIamCandidate,code:spec.code,title:spec.title,version:'0.1.0-checklist-candidate',rationale:'Category-specific candidate based on the supplied ISO checklist and explicit closure judgements. '+spec.evidence+' No universal timing threshold, audit pass/fail or live-system verification is implied. Independent validation remains pending.',facts:fields.map(field=>({id:field.id,label:field.label,type:field.type==='retest'?'text':field.type})),rules,decisions,checklistPolicy:{version:'1.0-iso27001-'+spec.code,mappings:{...commonMappings,...spec.mappings}}});
+ const protocol=protocolSchema.parse({author:'ClosureProof product method',hitPolicy:'explicit_priority',timing:commonReadinessTiming,code:spec.code,title:spec.title,version:'0.1.0-checklist-candidate',rationale:'Category-specific candidate based on the supplied ISO checklist and explicit closure judgements. '+spec.evidence+' No universal timing threshold, audit pass/fail or live-system verification is implied. Independent validation remains pending.',facts:fields.map(field=>({id:field.id,label:field.label,type:field.type==='retest'?'text':field.type})),rules,decisions,checklistPolicy:{version:'1.0-iso27001-'+spec.code,mappings:{...commonMappings,...spec.mappings}}});
  return {protocol,fields,evidenceGuidance:spec.evidence};
 }
 const expandedAwsIam=protocolSchema.parse({...awsIamCandidate,version:'0.3.0-checklist-candidate',checklistPolicy:{version:'1.1-iso27001-aws-iam',mappings:{...awsIamCandidate.checklistPolicy!.mappings,'iso-ACC-00':['scope','coverage'],'iso-ACC-06':['coverage'],'iso-INF-04':['scope'],'iso-PEO-07':['coverage']}}});
-export const assessmentMethods:readonly AssessmentMethod[]=[{protocol:expandedAwsIam,fields:assessmentFields,evidenceGuidance:'Approved entitlements, identity/role inventory, access changes, attributable activity and relevant verification records.'},...specs.map(buildMethod)];
+export const assessmentMethods:readonly AssessmentMethod[]=[{protocol:expandedAwsIam,fields:awsIamFields,evidenceGuidance:'Approved entitlements, identity/role inventory, access changes, attributable activity and relevant verification records.'},...specs.map(buildMethod)];
 export function assessmentMethod(code:string):AssessmentMethod|undefined{return assessmentMethods.find(method=>method.protocol.code===code);}
 export function newProtocolDraft(code:string,previous?:EngineDraft):EngineDraft{
  const method=assessmentMethod(code);if(!method)throw Error('No rules-supported protocol for this finding category.');

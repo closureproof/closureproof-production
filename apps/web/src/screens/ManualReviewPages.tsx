@@ -14,7 +14,7 @@ import { ReviewSourcesEditor } from '../components/ReviewSourcesEditor';
 import { combinedReviewConclusion, emptyReviewSources, restoreEditableEngineDraft, reuseReviewInputs } from '../features/review-reuse';
 import {assessmentMethod,newProtocolDraft} from '@closureproof/assessment-engine/protocol-catalogue';
 import { SubmissionEvidence, type SubmissionAttachment } from '../components/SubmissionEvidence';
-import { type EngineDraft } from '@closureproof/assessment-engine/aws-iam';
+import { type EngineDraft } from '@closureproof/assessment-engine/review-contracts';
 import { RulesAssessment, RulesTrace } from '../components/RulesAssessment';
 import type { EngineRequest, EnginePreview } from '../lib/rules-assessment';
 import { documentApi, sourceHref, type PublicAnalysisRun } from '../lib/document-analysis';
