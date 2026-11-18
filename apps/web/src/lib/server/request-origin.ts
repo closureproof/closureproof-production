@@ -10,5 +10,7 @@ export function sameRequestOrigin(request: Request): boolean {
     const protocol = forwarded === 'https' || forwarded === 'http' ? forwarded + ':' : url.protocol;
     const supplied = new URL(origin);
     return supplied.host === host && supplied.protocol === protocol;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }

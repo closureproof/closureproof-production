@@ -3,24 +3,41 @@ import fs from 'node:fs/promises';
 import { unzipSync } from 'fflate';
 import { openWorkspace, openJudgementDetails, openConclusionDetails } from './helpers';
 
-test('Supabase contract: submission populates original dashboard; review completes with report; replacement makes review stale', async ({ page }) => {
+test('Supabase contract: submission populates original dashboard; review completes with report; replacement makes review stale', async ({
+  page,
+}) => {
   test.setTimeout(60000);
-  const errors: string[] = []; const localBackendCalls: string[] = [];
-  page.on('pageerror', e => errors.push(e.message)); page.on('request', r => { if (r.url().includes(':8005/')) localBackendCalls.push(r.url()); });
+  const errors: string[] = [];
+  const localBackendCalls: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('request', (r) => {
+    if (r.url().includes(':8005/')) localBackendCalls.push(r.url());
+  });
   const title = `Submitted security finding ${Date.now()} ${test.info().project.name}`;
   await openWorkspace(page);
-  await page.goto('/app/submission');await page.getByRole('button',{name:'Enter finding manually',exact:true}).click();
+  await page.goto('/app/submission');
+  await page.getByRole('button', { name: 'Enter finding manually', exact: true }).click();
   await expect(page.getByLabel('Finding category', { exact: true })).toHaveValue('access');
   await page.getByRole('checkbox', { name: /^A\.5\.18 ·/ }).check();
   await page.getByRole('checkbox', { name: 'Independent retest assessment', exact: true }).check();
   await page.getByLabel('Finding title', { exact: true }).fill(title);
-  await page.getByLabel('Finding description', { exact: true }).fill('Five identities have permissions beyond the approved baseline.');
+  await page
+    .getByLabel('Finding description', { exact: true })
+    .fill('Five identities have permissions beyond the approved baseline.');
   await page.getByLabel('Remediation owner', { exact: true }).fill('Remediation Owner');
-  await page.getByLabel('Source account / environment reference', { exact: true }).fill('REDACTED-SYSTEM');
+  await page
+    .getByLabel('Source account / environment reference', { exact: true })
+    .fill('REDACTED-SYSTEM');
   await page.getByLabel('Affected systems / environment', { exact: true }).fill('Production');
-  await page.getByLabel('Affected identities and resource references', { exact: true }).fill('alice, bob, charlie, delta, echo');
-  await page.getByLabel('Root cause', { exact: true }).fill('The review population was not reconciled.');
-  await page.getByLabel('Corrective action', { exact: true }).fill('Reconcile and review the complete identity register.');
+  await page
+    .getByLabel('Affected identities and resource references', { exact: true })
+    .fill('alice, bob, charlie, delta, echo');
+  await page
+    .getByLabel('Root cause', { exact: true })
+    .fill('The review population was not reconciled.');
+  await page
+    .getByLabel('Corrective action', { exact: true })
+    .fill('Reconcile and review the complete identity register.');
   await page.getByRole('button', { name: 'Create finding', exact: true }).click();
   await expect(page.getByRole('heading', { name: title })).toBeVisible();
   const findingUrl = page.url();
@@ -33,22 +50,30 @@ test('Supabase contract: submission populates original dashboard; review complet
   await page.goto(findingUrl);
   const fileChooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Browse files', exact: true }).click();
-  await (await fileChooser).setFiles({ name: 'identity-register.json', mimeType: 'application/json', buffer: Buffer.from('{"covered":["alice","bob","charlie","delta"]}') });
+  await (
+    await fileChooser
+  ).setFiles({
+    name: 'identity-register.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"covered":["alice","bob","charlie","delta"]}'),
+  });
   await expect(page.getByText(/identity-register.json · 1 KB/, { exact: false })).toBeVisible();
   await page.getByLabel('Evidence type', { exact: true }).fill('Identity register export');
   await page.getByLabel('Source system', { exact: true }).fill('Identity service');
-  await page.getByLabel('Evidence description', { exact: true }).fill('Export covers four of the five identities for review.');
+  await page
+    .getByLabel('Evidence description', { exact: true })
+    .fill('Export covers four of the five identities for review.');
   await page.getByRole('button', { name: 'Upload evidence', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'identity-register.json · v1' })).toBeVisible();
   await expect(page.getByText('submitted/unverified', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Inspect evidence', exact: true }).click();
   await expect(page.locator('pre')).toContainText('"delta"');
-  await page.getByRole('button',{name:'Close preview',exact:true}).click();
+  await page.getByRole('button', { name: 'Close preview', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download original' }).click();
   expect((await download).suggestedFilename()).toBe('identity-register.json');
   await page.goto('/app/reviews');
-  await page.getByRole('button',{name:'View findings for '+title,exact:true}).click();
+  await page.getByRole('button', { name: 'View findings for ' + title, exact: true }).click();
   await page.getByRole('link').filter({ hasText: title }).click();
   await expect(page).toHaveURL(/\/app\/reviews\/[^/]+$/);
   await expect(page.getByRole('heading', { name: 'Inspect. Record. Explain.' })).toBeVisible();
@@ -56,59 +81,120 @@ test('Supabase contract: submission populates original dashboard; review complet
   await expect(page.getByLabel('Evidence file', { exact: true })).toHaveCount(0);
   await page.goto(findingUrl);
   await expect(page.getByText('Record evidence judgement', { exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Save evidence judgement', exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Save evidence judgement', exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Open review', exact: true })).toHaveCount(0);
-  await page.goto(findingUrl.replace('/app/findings/','/app/reviews/'));
+  await page.goto(findingUrl.replace('/app/findings/', '/app/reviews/'));
   await expect(page.getByRole('heading', { name: 'Inspect. Record. Explain.' })).toBeVisible();
   const review = page.locator('[data-review-form]');
   const steps = page.getByRole('navigation', { name: 'Review steps', exact: true });
   await review.getByRole('checkbox', { name: /^I confirm that the selected controls/ }).check();
   await review.getByLabel('Reviewer', { exact: true }).fill('Reviewer Jane');
   await steps.getByRole('button', { name: /Recommendation & report/ }).click();
-  await review.getByLabel('Review conclusion and rationale', { exact: true }).fill('The missing account and remediation evidence prevent a closure recommendation.');
+  await review
+    .getByLabel('Review conclusion and rationale', { exact: true })
+    .fill('The missing account and remediation evidence prevent a closure recommendation.');
   await steps.getByRole('button', { name: /Gaps & exceptions/ }).click();
-  await openJudgementDetails(page,'Exceptions identified');
+  await openJudgementDetails(page, 'Exceptions identified');
   await review.getByRole('button', { name: 'Add exception', exact: true }).click();
-  for (const [field, value] of Object.entries({ reference: 'EX-01', description: 'Echo is absent from the register', owner: 'IT Operations', 'closure impact': 'Complete population evidence is needed', 'evidence reference': 'identity-register.json' })) await review.getByLabel('Exception 1: ' + field, { exact: true }).fill(value);
-  await review.getByLabel('Scope completeness judgement', { exact: true }).fill('The identity register does not yet cover the full finding scope.');
+  for (const [field, value] of Object.entries({
+    reference: 'EX-01',
+    description: 'Echo is absent from the register',
+    owner: 'IT Operations',
+    'closure impact': 'Complete population evidence is needed',
+    'evidence reference': 'identity-register.json',
+  }))
+    await review.getByLabel('Exception 1: ' + field, { exact: true }).fill(value);
+  await review
+    .getByLabel('Scope completeness judgement', { exact: true })
+    .fill('The identity register does not yet cover the full finding scope.');
   await review.getByRole('button', { name: 'Save review draft', exact: true }).click();
-  await expect(page.getByText('Manual review draft saved. No readiness recommendation was published.')).toBeVisible();
+  await expect(
+    page.getByText('Manual review draft saved. No readiness recommendation was published.'),
+  ).toBeVisible();
   await page.reload();
   await expect(review.getByLabel('Scope completeness judgement', { exact: true })).toBeVisible();
-  await expect(review.getByLabel('Scope completeness judgement', { exact: true })).toHaveValue('The identity register does not yet cover the full finding scope.');
+  await expect(review.getByLabel('Scope completeness judgement', { exact: true })).toHaveValue(
+    'The identity register does not yet cover the full finding scope.',
+  );
   await expect(review.getByLabel('Reviewer', { exact: true })).toHaveValue('Reviewer Jane');
   await steps.getByRole('button', { name: /Evidence & checklist/ }).click();
-  for (const group of await review.locator('[data-protocol-check]').all()) await group.getByRole('textbox', { name: /: rationale$/ }).fill('I inspected the submitted material; further records are needed for my judgement.');
+  for (const group of await review.locator('[data-protocol-check]').all())
+    await group
+      .getByRole('textbox', { name: /: rationale$/ })
+      .fill('I inspected the submitted material; further records are needed for my judgement.');
   await steps.getByRole('button', { name: /Recommendation & report/ }).click();
   await review.getByRole('button', { name: 'Complete Review', exact: true }).click();
-  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText('Complete the reviewer judgement:');
-  await expect(review.getByRole('group', { name: 'Root cause and corrective-action effectiveness', exact: true })).toBeVisible();
-  await review.getByLabel('Root-cause classification', { exact: true }).selectOption('Incomplete population');
+  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText(
+    'Complete the reviewer judgement:',
+  );
+  await expect(
+    review.getByRole('group', {
+      name: 'Root cause and corrective-action effectiveness',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await review
+    .getByLabel('Root-cause classification', { exact: true })
+    .selectOption('Incomplete population');
   await review.getByLabel('Retest status', { exact: true }).selectOption('Not performed');
-  for (const field of await review.locator('[data-review-step="1"] fieldset[id^="judgement-"] textarea:visible').all()) await field.fill('Inspected by the reviewer; missing records and unresolved coverage prevent closure.');
+  for (const field of await review
+    .locator('[data-review-step="1"] fieldset[id^="judgement-"] textarea:visible')
+    .all())
+    await field.fill(
+      'Inspected by the reviewer; missing records and unresolved coverage prevent closure.',
+    );
   await review.getByLabel('Coverage approach', { exact: true }).selectOption('Full population');
-  const cause = review.getByRole('group', { name: 'Root cause and corrective-action effectiveness', exact: true });
+  const cause = review.getByRole('group', {
+    name: 'Root cause and corrective-action effectiveness',
+    exact: true,
+  });
   await cause.getByText('Evidence supporting this judgement', { exact: true }).click();
   await cause.getByRole('checkbox', { name: /identity-register.json/ }).check();
-  await expect(review.getByLabel('Population reconciliation and exclusions', { exact: true })).toHaveCount(0);
-  await expect(review.getByLabel('Recurrence-prevention judgement', { exact: true })).toHaveCount(0);
+  await expect(
+    review.getByLabel('Population reconciliation and exclusions', { exact: true }),
+  ).toHaveCount(0);
+  await expect(review.getByLabel('Recurrence-prevention judgement', { exact: true })).toHaveCount(
+    0,
+  );
   await steps.getByRole('button', { name: /Evidence & checklist/ }).click();
-  await review.getByLabel('ACC-10 · Access Reviews are Completed: applicability', { exact: true }).selectOption('yes');
-  await review.getByLabel('ACC-10 · Access Reviews are Completed: implementation status', { exact: true }).selectOption('partially_implemented');
-  await review.getByLabel('ACC-10 · Access Reviews are Completed: source location', { exact: true }).fill('JSON $.covered: echo is absent');
-  await review.getByRole('group', { name: 'ACC-10 · Access Reviews are Completed', exact: true }).getByRole('checkbox').check();
+  await review
+    .getByLabel('ACC-10 · Access Reviews are Completed: applicability', { exact: true })
+    .selectOption('yes');
+  await review
+    .getByLabel('ACC-10 · Access Reviews are Completed: implementation status', { exact: true })
+    .selectOption('partially_implemented');
+  await review
+    .getByLabel('ACC-10 · Access Reviews are Completed: source location', { exact: true })
+    .fill('JSON $.covered: echo is absent');
+  await review
+    .getByRole('group', { name: 'ACC-10 · Access Reviews are Completed', exact: true })
+    .getByRole('checkbox')
+    .check();
   await steps.getByRole('button', { name: /Recommendation & report/ }).click();
   await openConclusionDetails(page);
-  for (const field of await review.locator('#judgement-conclusion textarea:visible').all()) await field.fill('Inspected by the reviewer; unresolved coverage and records prevent closure.');
-  await review.getByLabel('Reviewer recommendation (manually selected)', { exact: true }).selectOption('Closure ready');
+  for (const field of await review.locator('#judgement-conclusion textarea:visible').all())
+    await field.fill('Inspected by the reviewer; unresolved coverage and records prevent closure.');
+  await review
+    .getByLabel('Reviewer recommendation (manually selected)', { exact: true })
+    .selectOption('Closure ready');
   await review.getByRole('button', { name: 'Complete Review', exact: true }).click();
-  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText('Confirm that you have explained unresolved observations');
-  await review.getByLabel('Reviewer recommendation (manually selected)', { exact: true }).selectOption('Not closure ready');
-  await review.getByLabel('Outstanding actions, owners and evidence requests', { exact: true }).fill('Please submit the fifth identity and its permissions.');
+  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText(
+    'Confirm that you have explained unresolved observations',
+  );
+  await review
+    .getByLabel('Reviewer recommendation (manually selected)', { exact: true })
+    .selectOption('Not closure ready');
+  await review
+    .getByLabel('Outstanding actions, owners and evidence requests', { exact: true })
+    .fill('Please submit the fifth identity and its permissions.');
   await review.getByRole('button', { name: 'Complete Review', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Assessment .*Completed/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Complete Review', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Download report PDF', exact: true })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('button', { name: 'Download report PDF', exact: true })).toBeVisible({
+    timeout: 30000,
+  });
   const pdfDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download report PDF', exact: true }).click();
   await (await pdfDownload).saveAs(test.info().outputPath('assessment-report.pdf'));
@@ -119,71 +205,145 @@ test('Supabase contract: submission populates original dashboard; review complet
   const contents = unzipSync(new Uint8Array(await fs.readFile((await archive.path())!)));
   const manifest = JSON.parse(new TextDecoder().decode(contents['manifest.json']));
   expect(manifest.evidence).toHaveLength(1);
-  expect(new TextDecoder().decode(contents[manifest.evidence[0].archive_path])).toBe('{"covered":["alice","bob","charlie","delta"]}');
-  await page.route('**/storage/v1/object/**', route => route.request().url().includes('/reports/') ? route.continue() : route.abort());
+  expect(new TextDecoder().decode(contents[manifest.evidence[0].archive_path])).toBe(
+    '{"covered":["alice","bob","charlie","delta"]}',
+  );
+  await page.route('**/storage/v1/object/**', (route) =>
+    route.request().url().includes('/reports/') ? route.continue() : route.abort(),
+  );
   await page.getByRole('button', { name: 'Download evidence pack', exact: true }).click();
-  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText('Evidence pack incomplete: identity-register.json');
-  await expect(page.getByRole('button', { name: 'Download report PDF', exact: true })).toBeEnabled();
+  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toContainText(
+    'Evidence pack incomplete: identity-register.json',
+  );
+  await expect(
+    page.getByRole('button', { name: 'Download report PDF', exact: true }),
+  ).toBeEnabled();
   await page.unroute('**/storage/v1/object/**');
   await page.getByRole('button', { name: 'Request remediation', exact: true }).click();
   await page.getByLabel('Your name', { exact: true }).fill('Reviewer Jane');
   await page.getByLabel('Action owner / retest contact', { exact: true }).fill('IT Operations');
-  await page.getByLabel('Requested actions / retest scope', { exact: true }).fill('Review and supply the complete account register.');
-  await page.getByLabel('Evidence required', { exact: true }).fill('The fifth identity and its permissions must be supplied.');
+  await page
+    .getByLabel('Requested actions / retest scope', { exact: true })
+    .fill('Review and supply the complete account register.');
+  await page
+    .getByLabel('Evidence required', { exact: true })
+    .fill('The fifth identity and its permissions must be supplied.');
   await page.getByRole('button', { name: 'Confirm action', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Remediation requested', exact: true })).toBeVisible();
-  await page.goto('/app/reviews?submission='+encodeURIComponent('finding:'+findingUrl.split('/').pop()));
-  await page.getByRole('link',{name:new RegExp(title)}).click();
-  await expect(page.getByLabel('Request type',{exact:true})).toHaveCount(0);
-  await page.getByRole('button',{name:'Request remediation',exact:true}).click();
-  await expect(page.getByText('Remediation has already been requested.',{exact:false})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Resubmit for Review',exact:true})).toHaveCount(0);
-  await page.getByLabel('Request type',{exact:true}).selectOption('scope_and_evidence');
-  await page.getByLabel('Requested scope correction',{exact:true}).fill('Include the missing identity in the assessed population and confirm the complete scope.');
-  await expect(page.getByLabel('Your name',{exact:true})).toHaveValue('Reviewer Jane');
-  await expect(page.getByLabel('Action owner / retest contact',{exact:true})).toHaveValue('IT Operations');
-  await expect(page.getByLabel('Requested actions / retest scope',{exact:true})).toHaveValue('Review and supply the complete account register.');
-  await expect(page.getByLabel('Evidence required',{exact:true})).toHaveValue('The fifth identity and its permissions must be supplied.');
-  await page.getByLabel('Requested actions / retest scope',{exact:true}).fill('Review and supply the complete register with exception dispositions.');
-  await page.getByRole('button',{name:'Confirm action',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Remediation requested',exact:true})).toHaveCount(2);
+  await expect(
+    page.getByRole('heading', { name: 'Remediation requested', exact: true }),
+  ).toBeVisible();
+  await page.goto(
+    '/app/reviews?submission=' + encodeURIComponent('finding:' + findingUrl.split('/').pop()),
+  );
+  await page.getByRole('link', { name: new RegExp(title) }).click();
+  await expect(page.getByLabel('Request type', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Request remediation', exact: true }).click();
+  await expect(
+    page.getByText('Remediation has already been requested.', { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Resubmit for Review', exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByLabel('Request type', { exact: true }).selectOption('scope_and_evidence');
+  await page
+    .getByLabel('Requested scope correction', { exact: true })
+    .fill(
+      'Include the missing identity in the assessed population and confirm the complete scope.',
+    );
+  await expect(page.getByLabel('Your name', { exact: true })).toHaveValue('Reviewer Jane');
+  await expect(page.getByLabel('Action owner / retest contact', { exact: true })).toHaveValue(
+    'IT Operations',
+  );
+  await expect(page.getByLabel('Requested actions / retest scope', { exact: true })).toHaveValue(
+    'Review and supply the complete account register.',
+  );
+  await expect(page.getByLabel('Evidence required', { exact: true })).toHaveValue(
+    'The fifth identity and its permissions must be supplied.',
+  );
+  await page
+    .getByLabel('Requested actions / retest scope', { exact: true })
+    .fill('Review and supply the complete register with exception dispositions.');
+  await page.getByRole('button', { name: 'Confirm action', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Remediation requested', exact: true }),
+  ).toHaveCount(2);
 
   await page.goto(findingUrl);
   await page.getByRole('tab', { name: 'Review history', exact: true }).click();
   await page.getByText(/Reviewer Jane · completed/).click();
-  await expect(page.getByText(/Reviewer Jane · completed/).locator('..').getByText('EX-01: Echo is absent from the register', { exact: true })).toBeVisible();
-  await expect(page.getByText('ACC-10 · Access Reviews are Completed: Partially implemented', { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByText(/Reviewer Jane · completed/)
+      .locator('..')
+      .getByText('EX-01: Echo is absent from the register', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('ACC-10 · Access Reviews are Completed: Partially implemented', { exact: true }),
+  ).toBeVisible();
   await page.goto('/app');
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole('row').filter({ hasText: title })).toContainText('Not closure ready');
   await page.reload();
   await expect(page.getByRole('row').filter({ hasText: title })).toContainText('Not closure ready');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  await page.screenshot({ path: test.info().outputPath('real-data-dashboard.png'), fullPage: true });
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+  ).toBeTruthy();
+  await page.screenshot({
+    path: test.info().outputPath('real-data-dashboard.png'),
+    fullPage: true,
+  });
   await page.goto(findingUrl);
-  await expect(page.getByRole('heading',{name:'Remediation response',exact:true})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Return for Remediation',exact:true})).toHaveCount(0);
-  await expect(page.getByRole('button',{name:'Resubmit for Review',exact:true})).toHaveCount(0);
-  await page.getByLabel('Your name',{exact:true}).fill('IT Operations');
-  await page.getByLabel('Changes and response to requests',{exact:true}).fill('Added the complete register including the previously missing identity.');
-  await page.getByRole('button',{name:'Add evidence',exact:true}).click();
-  await page.getByLabel('Evidence file to add', { exact: true }).setInputFiles({ name: 'identity-register-v2.json', mimeType: 'application/json', buffer: Buffer.from('{"covered":["alice","bob","charlie","delta","echo"]}') });
+  await expect(
+    page.getByRole('heading', { name: 'Remediation response', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Return for Remediation', exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Resubmit for Review', exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByLabel('Your name', { exact: true }).fill('IT Operations');
+  await page
+    .getByLabel('Changes and response to requests', { exact: true })
+    .fill('Added the complete register including the previously missing identity.');
+  await page.getByRole('button', { name: 'Add evidence', exact: true }).click();
+  await page.getByLabel('Evidence file to add', { exact: true }).setInputFiles({
+    name: 'identity-register-v2.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"covered":["alice","bob","charlie","delta","echo"]}'),
+  });
   await page.getByLabel('Evidence type', { exact: true }).fill('Updated identity register');
   await page.getByLabel('Source system', { exact: true }).fill('Identity service');
-  await page.getByLabel('Replaces evidence (optional)', { exact: true }).selectOption({ label: 'identity-register.json · v1' });
-  await page.getByLabel('Evidence description', { exact: true }).fill('The full register is submitted for a fresh review.');
-  await page.getByRole('button',{name:'Add to evidence list',exact:true}).click();
-  let lostResponse=false;
-  await page.route('**/rest/v1/rpc/cpp_workflow_action',async route=>{
-    if(!lostResponse&&route.request().postDataJSON()?.p_action==='resubmit'){
-      lostResponse=true;const response=await route.fetch();expect(response.ok()).toBeTruthy();
-      await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:'Simulated lost resubmission response',code:'TEST_RESPONSE_LOST'})});return;
+  await page
+    .getByLabel('Replaces evidence (optional)', { exact: true })
+    .selectOption({ label: 'identity-register.json · v1' });
+  await page
+    .getByLabel('Evidence description', { exact: true })
+    .fill('The full register is submitted for a fresh review.');
+  await page.getByRole('button', { name: 'Add to evidence list', exact: true }).click();
+  let lostResponse = false;
+  await page.route('**/rest/v1/rpc/cpp_workflow_action', async (route) => {
+    if (!lostResponse && route.request().postDataJSON()?.p_action === 'resubmit') {
+      lostResponse = true;
+      const response = await route.fetch();
+      expect(response.ok()).toBeTruthy();
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'Simulated lost resubmission response',
+          code: 'TEST_RESPONSE_LOST',
+        }),
+      });
+      return;
     }
     await route.continue();
   });
-  await page.getByRole('button',{name:'Submit remediation for review',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Retry remediation submission',exact:true})).toBeEnabled();
-  await page.getByRole('button',{name:'Retry remediation submission',exact:true}).click();
+  await page.getByRole('button', { name: 'Submit remediation for review', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Retry remediation submission', exact: true }),
+  ).toBeEnabled();
+  await page.getByRole('button', { name: 'Retry remediation submission', exact: true }).click();
   await page.unroute('**/rest/v1/rpc/cpp_workflow_action');
   await expect(page.getByRole('heading', { name: 'identity-register-v2.json · v2' })).toBeVisible();
   await expect(page.getByText('No current reviewer recommendation', { exact: true })).toBeVisible();
@@ -192,13 +352,18 @@ test('Supabase contract: submission populates original dashboard; review complet
   await expect(page.getByText(/Stale — earlier finding\/evidence revision/).first()).toBeVisible();
   const historicalDownload = page.waitForEvent('download');
   await page.getByRole('tab', { name: 'Evidence', exact: true }).click();
-  await page.getByText('Submission cycles and comparison',{exact:true}).click();
+  await page.getByText('Submission cycles and comparison', { exact: true }).click();
   await page.getByRole('button', { name: 'Download report PDF', exact: true }).first().click();
   const historicalFile = await (await historicalDownload).path();
-  expect(await fs.readFile(historicalFile!)).toEqual(await fs.readFile(test.info().outputPath('assessment-report.pdf')));
-  await page.goto('/app/reviews/'+findingUrl.split('/').pop());
-  await expect(page.getByRole('navigation',{name:'Review steps',exact:true})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'identity-register-v2.json · v2',exact:true})).toBeVisible();
-  await expect(page.getByText('Cycle 2',{exact:true})).toBeVisible();
-  expect(errors).toEqual([]); expect(localBackendCalls).toEqual([]);
+  expect(await fs.readFile(historicalFile!)).toEqual(
+    await fs.readFile(test.info().outputPath('assessment-report.pdf')),
+  );
+  await page.goto('/app/reviews/' + findingUrl.split('/').pop());
+  await expect(page.getByRole('navigation', { name: 'Review steps', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'identity-register-v2.json · v2', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('Cycle 2', { exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+  expect(localBackendCalls).toEqual([]);
 });

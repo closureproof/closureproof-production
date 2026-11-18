@@ -1,7 +1,0 @@
-[build]
-  base = "."
-  command = "npm run build -- --filter=@closureproof/web"
-  publish = "apps/web/.next"
-
-# Set the Netlify package directory to apps/web; install from the root lockfile.
-# Netlify supplies the Next.js adapter for the selected application package.

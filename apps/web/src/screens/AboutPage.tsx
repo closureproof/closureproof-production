@@ -1,29 +1,186 @@
 'use client';
-import {ArrowUpRight,ArrowRight} from 'lucide-react';
-import {Link} from '../lib/navigation';
-import {CONTACT_EMAIL,CONTACT_HREF} from '../lib/public-contact';
-import {PublicHeader} from '../components/PublicHeader';
-import {PublicFooter} from '../components/PublicFooter';
-import {buttonClass} from '../components/ui';
-const container='mx-auto max-w-6xl px-5 sm:px-8';
-export function AboutPage(){
- return <><PublicHeader about/><main id="main"><section className={container+' py-16 sm:py-24'}><p className="text-xs font-semibold uppercase tracking-[.16em] text-accent">About ClosureProof</p><h1 className="mt-5 max-w-3xl font-display text-4xl leading-tight font-bold tracking-tight sm:text-5xl lg:text-6xl">A clear basis for closing audit findings.</h1><p className="mt-7 max-w-2xl text-lg leading-8 text-muted">An audit identifies an issue. Remediation addresses it. Closure requires a clear explanation of why the evidence is sufficient.</p><p className="mt-5 max-w-2xl text-sm leading-7 text-muted">ClosureProof brings that assessment into one place, connecting each finding with its corrective actions, supporting records and documented review recommendation.</p></section>
- <section className="border-y border-line bg-white"><div className={container+' grid gap-8 py-14 md:grid-cols-[0.8fr_1.2fr] md:gap-16'}><h2 className="font-display text-2xl font-semibold tracking-tight">The gap between<br className="hidden md:block"/> remediation and closure.</h2><div className="space-y-5 text-sm leading-8 text-muted"><p>A completed ticket can show that work was done. It may not establish that the root cause was addressed, every affected system was covered or the corrective action worked as intended.</p><p>When those questions are answered across separate documents and email threads, the basis for closure becomes difficult to follow. ClosureProof keeps the evidence, assessment and outstanding actions connected to the finding.</p></div></div></section>
- <section className={container+' py-16 sm:py-20'}><p className="text-xs font-semibold uppercase tracking-[.14em] text-accent">Who it serves</p><h2 className="mt-4 font-display text-3xl font-bold tracking-tight">A shared record. Distinct responsibilities.</h2><div className="mt-9 grid gap-5 md:grid-cols-3">{[
- ['Audit and IT teams','Submit findings, explain the corrective actions and provide the supporting evidence. Respond to requests for further records or scope corrections.'],
- ['Closure reviewers','Assess relevant controls, examine gaps and exceptions, and record an evidence-backed closure-readiness recommendation.'],
- ['Auditors and management','Use the assessment and evidence pack to inform the final closure decision, with the review basis and remaining actions clearly documented.'],
- ].map(([title,description])=><article key={title} className="rounded-2xl border border-line bg-white p-6"><h3 className="text-base font-semibold">{title}</h3><p className="mt-4 text-sm leading-7 text-muted">{description}</p></article>)}</div></section>
- <section className="bg-soft"><div className={container+' grid gap-12 py-16 md:grid-cols-2 md:gap-16'}><div><p className="text-xs font-semibold uppercase tracking-[.14em] text-accent">Our approach</p><h2 className="mt-4 font-display text-3xl font-bold tracking-tight">Evidence informs the review.<br/>Rules support the judgement.</h2><p className="mt-5 text-sm leading-8 text-muted">Document interpretation helps organise relevant facts and their source references. Structured review considers the finding’s scope, corrective action, coverage and unresolved issues. Rules-supported assessment brings consistency to how those recorded inputs are evaluated.</p><p className="mt-4 text-sm leading-8 text-muted">The reviewer checks the assessment and records the recommendation. ClosureProof does not certify compliance or replace the auditor’s or authorised management’s final closure decision.</p></div><ol className="space-y-5">{[
- ['Submit','Bring the finding and its remediation evidence together.'],
- ['Assess','Review the relevant requirements and identify what remains unresolved.'],
- ['Recommend','Record whether the finding is closure ready or needs further action.'],
- ['Document','Retain the assessment, supporting references and report for handover.'],
- ].map(([title,text],index)=><li key={title} className="flex gap-4 rounded-xl border border-line bg-white p-5"><span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-soft text-xs font-semibold text-accent">{index+1}</span><div><h3 className="text-sm font-semibold">{title}</h3><p className="mt-1 text-xs leading-6 text-muted">{text}</p></div></li>)}</ol></div></section>
- <section className={container+' py-16 sm:py-20'}><div className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:gap-16"><h2 className="font-display text-2xl font-semibold tracking-tight">What makes the review traceable.</h2><div className="space-y-7">{[
- ['Finding-specific scope','Assessments focus on the controls and evidence relevant to the finding, rather than treating every checklist item as universally applicable.'],
- ['A recorded basis for the recommendation','Supporting references, reviewer explanations and outstanding actions show how the conclusion was reached.'],
- ['History that remains available','Further evidence and reassessments create review cycles and revisions, preserving earlier decisions and reports.'],
- ].map(([title,text])=><div key={title} className="border-b border-line pb-6"><h3 className="text-sm font-semibold">{title}</h3><p className="mt-2 text-sm leading-7 text-muted">{text}</p></div>)}</div></div></section>
- <section className="border-t border-line bg-white"><div className={container+' flex flex-wrap items-center justify-between gap-8 py-14'}><div className="min-w-0"><h2 className="font-display text-2xl font-semibold tracking-tight">Talk to us about your review process.</h2><p className="mt-3 text-sm leading-7 text-muted">For product enquiries and demo requests, contact the ClosureProof team.</p><a href={CONTACT_HREF} className="mt-4 inline-flex max-w-full items-center gap-2 break-all text-sm font-semibold text-accent">{CONTACT_EMAIL}<ArrowRight size={15} className="shrink-0" aria-hidden="true"/></a></div><Link to="/request-demo" className={buttonClass}>Request demo<ArrowUpRight size={16} aria-hidden="true"/></Link></div></section></main><PublicFooter/></>;
+import { ArrowUpRight, ArrowRight } from 'lucide-react';
+import { Link } from '../lib/navigation';
+import { CONTACT_EMAIL, CONTACT_HREF } from '../lib/public-contact';
+import { PublicHeader } from '../components/PublicHeader';
+import { PublicFooter } from '../components/PublicFooter';
+import { buttonClass } from '../components/ui';
+const container = 'mx-auto max-w-6xl px-5 sm:px-8';
+export function AboutPage() {
+  return (
+    <>
+      <PublicHeader about />
+      <main id="main">
+        <section className={container + ' py-16 sm:py-24'}>
+          <p className="text-xs font-semibold uppercase tracking-[.16em] text-accent">
+            About ClosureProof
+          </p>
+          <h1 className="mt-5 max-w-3xl font-display text-4xl leading-tight font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            A clear basis for closing audit findings.
+          </h1>
+          <p className="mt-7 max-w-2xl text-lg leading-8 text-muted">
+            An audit identifies an issue. Remediation addresses it. Closure requires a clear
+            explanation of why the evidence is sufficient.
+          </p>
+          <p className="mt-5 max-w-2xl text-sm leading-7 text-muted">
+            ClosureProof brings that assessment into one place, connecting each finding with its
+            corrective actions, supporting records and documented review recommendation.
+          </p>
+        </section>
+        <section className="border-y border-line bg-white">
+          <div className={container + ' grid gap-8 py-14 md:grid-cols-[0.8fr_1.2fr] md:gap-16'}>
+            <h2 className="font-display text-2xl font-semibold tracking-tight">
+              The gap between
+              <br className="hidden md:block" /> remediation and closure.
+            </h2>
+            <div className="space-y-5 text-sm leading-8 text-muted">
+              <p>
+                A completed ticket can show that work was done. It may not establish that the root
+                cause was addressed, every affected system was covered or the corrective action
+                worked as intended.
+              </p>
+              <p>
+                When those questions are answered across separate documents and email threads, the
+                basis for closure becomes difficult to follow. ClosureProof keeps the evidence,
+                assessment and outstanding actions connected to the finding.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section className={container + ' py-16 sm:py-20'}>
+          <p className="text-xs font-semibold uppercase tracking-[.14em] text-accent">
+            Who it serves
+          </p>
+          <h2 className="mt-4 font-display text-3xl font-bold tracking-tight">
+            A shared record. Distinct responsibilities.
+          </h2>
+          <div className="mt-9 grid gap-5 md:grid-cols-3">
+            {[
+              [
+                'Audit and IT teams',
+                'Submit findings, explain the corrective actions and provide the supporting evidence. Respond to requests for further records or scope corrections.',
+              ],
+              [
+                'Closure reviewers',
+                'Assess relevant controls, examine gaps and exceptions, and record an evidence-backed closure-readiness recommendation.',
+              ],
+              [
+                'Auditors and management',
+                'Use the assessment and evidence pack to inform the final closure decision, with the review basis and remaining actions clearly documented.',
+              ],
+            ].map(([title, description]) => (
+              <article key={title} className="rounded-2xl border border-line bg-white p-6">
+                <h3 className="text-base font-semibold">{title}</h3>
+                <p className="mt-4 text-sm leading-7 text-muted">{description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+        <section className="bg-soft">
+          <div className={container + ' grid gap-12 py-16 md:grid-cols-2 md:gap-16'}>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.14em] text-accent">
+                Our approach
+              </p>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight">
+                Evidence informs the review.
+                <br />
+                Rules support the judgement.
+              </h2>
+              <p className="mt-5 text-sm leading-8 text-muted">
+                Document interpretation helps organise relevant facts and their source references.
+                Structured review considers the finding’s scope, corrective action, coverage and
+                unresolved issues. Rules-supported assessment brings consistency to how those
+                recorded inputs are evaluated.
+              </p>
+              <p className="mt-4 text-sm leading-8 text-muted">
+                The reviewer checks the assessment and records the recommendation. ClosureProof does
+                not certify compliance or replace the auditor’s or authorised management’s final
+                closure decision.
+              </p>
+            </div>
+            <ol className="space-y-5">
+              {[
+                ['Submit', 'Bring the finding and its remediation evidence together.'],
+                [
+                  'Assess',
+                  'Review the relevant requirements and identify what remains unresolved.',
+                ],
+                [
+                  'Recommend',
+                  'Record whether the finding is closure ready or needs further action.',
+                ],
+                [
+                  'Document',
+                  'Retain the assessment, supporting references and report for handover.',
+                ],
+              ].map(([title, text], index) => (
+                <li key={title} className="flex gap-4 rounded-xl border border-line bg-white p-5">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-soft text-xs font-semibold text-accent">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold">{title}</h3>
+                    <p className="mt-1 text-xs leading-6 text-muted">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+        <section className={container + ' py-16 sm:py-20'}>
+          <div className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
+            <h2 className="font-display text-2xl font-semibold tracking-tight">
+              What makes the review traceable.
+            </h2>
+            <div className="space-y-7">
+              {[
+                [
+                  'Finding-specific scope',
+                  'Assessments focus on the controls and evidence relevant to the finding, rather than treating every checklist item as universally applicable.',
+                ],
+                [
+                  'A recorded basis for the recommendation',
+                  'Supporting references, reviewer explanations and outstanding actions show how the conclusion was reached.',
+                ],
+                [
+                  'History that remains available',
+                  'Further evidence and reassessments create review cycles and revisions, preserving earlier decisions and reports.',
+                ],
+              ].map(([title, text]) => (
+                <div key={title} className="border-b border-line pb-6">
+                  <h3 className="text-sm font-semibold">{title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-muted">{text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="border-t border-line bg-white">
+          <div className={container + ' flex flex-wrap items-center justify-between gap-8 py-14'}>
+            <div className="min-w-0">
+              <h2 className="font-display text-2xl font-semibold tracking-tight">
+                Talk to us about your review process.
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-muted">
+                For product enquiries and demo requests, contact the ClosureProof team.
+              </p>
+              <a
+                href={CONTACT_HREF}
+                className="mt-4 inline-flex max-w-full items-center gap-2 break-all text-sm font-semibold text-accent"
+              >
+                {CONTACT_EMAIL}
+                <ArrowRight size={15} className="shrink-0" aria-hidden="true" />
+              </a>
+            </div>
+            <Link to="/request-demo" className={buttonClass}>
+              Request demo
+              <ArrowUpRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+      </main>
+      <PublicFooter />
+    </>
+  );
 }

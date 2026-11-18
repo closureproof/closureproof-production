@@ -17,62 +17,216 @@ grant usage on schema storage to authenticated; grant select,insert,delete on st
 insert into auth.users(id,email,email_confirmed_at) values
 ('${admin}','owner@example.test',now()),('${reviewer}','reviewer@example.test',now()),('${outsider}','outsider@example.test',now());
 `);
-await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261106000100_manual_review_workspace.sql', import.meta.url), 'utf8'));
-await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261106000100_manual_review_workspace.sql', import.meta.url), 'utf8'));
+await db.exec(
+  await fs.readFile(
+    new URL(
+      '../../../supabase/migrations/20261106000100_manual_review_workspace.sql',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
+await db.exec(
+  await fs.readFile(
+    new URL(
+      '../../../supabase/migrations/20261106000100_manual_review_workspace.sql',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
 let checks = 0;
-function assert(ok, message) { if (!ok) throw new Error(message); checks++; }
-async function as(user) { await db.exec(`reset role; set role authenticated; set request.jwt.claim.sub='${user}';`); }
-async function rpc(name, args=[]) { const placeholders=args.map((_,i)=>`$${i+1}`).join(','); return (await db.query(`select public.${name}(${placeholders}) as value`, args)).rows[0].value; }
-async function rejects(fn, text) { try { await fn(); } catch (e) { assert(!text || e.message.includes(text), `Wrong error: ${e.message}`); return; } throw new Error('Expected operation to be rejected'); }
+function assert(ok, message) {
+  if (!ok) throw new Error(message);
+  checks++;
+}
+async function as(user) {
+  await db.exec(`reset role; set role authenticated; set request.jwt.claim.sub='${user}';`);
+}
+async function rpc(name, args = []) {
+  const placeholders = args.map((_, i) => `$${i + 1}`).join(',');
+  return (await db.query(`select public.${name}(${placeholders}) as value`, args)).rows[0].value;
+}
+async function rejects(fn, text) {
+  try {
+    await fn();
+  } catch (e) {
+    assert(!text || e.message.includes(text), `Wrong error: ${e.message}`);
+    return;
+  }
+  throw new Error('Expected operation to be rejected');
+}
 await as(admin);
-const org=await rpc('cpw_create_organisation',['Demo workspace']);
-await rpc('cpw_add_member',[org,'reviewer@example.test','reviewer']);
-const input={ title:'Access review incomplete',description:'The review covers only four of the five identities.',owner:'Owner',severity:'High',protocol_code:'access',account_reference:'Redacted account',affected_systems:'Production',resources:'A,B,C,D,E',root_cause:'Unclear review ownership',corrective_action:'Assign owner and review every identity',approved_baseline:'Approved access register',recurrence_prevention:'Repeat the review',implementation_date:null,deadline:null,control_reference:'' };
-const finding=await rpc('cpw_create_finding',[org,JSON.stringify(input)]);
-assert((await db.query('select revision from public.cpw_findings where id=$1',[finding])).rows[0].revision===1,'Finding saved');
-await rejects(()=>db.query("update public.cpw_findings set revision=99 where id=$1",[finding]),'permission denied');
-await rejects(()=>rpc('cpw_save_review',[finding,1,'{}']),'different reviewer');
-await as(outsider); await rpc('cpw_bootstrap');
-assert((await db.query('select * from public.cpw_findings')).rows.length===0,'Cross-tenant rows hidden');
-await rejects(()=>rpc('cpw_update_finding',[finding,1,JSON.stringify(input)]),'access denied');
-await rejects(()=>rpc('cpw_add_member',[org,'outsider@example.test','admin']),'access denied');
-await as(admin);
-const file={filename:'policy.json',mime:'application/json',size:17,sha256:'a'.repeat(64)};
-const meta={evidence_type:'Policy export',source_system:'Application',source_account:'Redacted',covered_resources:'A,B,C,D',description:'Submitted for manual review.'};
-const upload=await rpc('cpw_begin_upload',[finding,1,JSON.stringify(file),JSON.stringify(meta)]);
-await db.query("insert into storage.objects(bucket_id,name,metadata) values('closureproof-workspace-evidence',$1,$2)",[upload.path,JSON.stringify({size:17,mimetype:'application/json'})]);
-await rpc('cpw_finalize_upload',[upload.id,1]);
-assert((await db.query('select revision from public.cpw_findings where id=$1',[finding])).rows[0].revision===2,'Upload updates revision');
-await rejects(()=>db.query("delete from storage.objects where name=$1 returning id",[upload.path]).then(r=>{if(!r.rows.length) throw Error('ready object protected')}),'protected');
+const org = await rpc('cpw_create_organisation', ['Demo workspace']);
+await rpc('cpw_add_member', [org, 'reviewer@example.test', 'reviewer']);
+const input = {
+  title: 'Access review incomplete',
+  description: 'The review covers only four of the five identities.',
+  owner: 'Owner',
+  severity: 'High',
+  protocol_code: 'access',
+  account_reference: 'Redacted account',
+  affected_systems: 'Production',
+  resources: 'A,B,C,D,E',
+  root_cause: 'Unclear review ownership',
+  corrective_action: 'Assign owner and review every identity',
+  approved_baseline: 'Approved access register',
+  recurrence_prevention: 'Repeat the review',
+  implementation_date: null,
+  deadline: null,
+  control_reference: '',
+};
+const finding = await rpc('cpw_create_finding', [org, JSON.stringify(input)]);
+assert(
+  (await db.query('select revision from public.cpw_findings where id=$1', [finding])).rows[0]
+    .revision === 1,
+  'Finding saved',
+);
+await rejects(
+  () => db.query('update public.cpw_findings set revision=99 where id=$1', [finding]),
+  'permission denied',
+);
+await rejects(() => rpc('cpw_save_review', [finding, 1, '{}']), 'different reviewer');
 await as(outsider);
-assert((await db.query('select * from storage.objects')).rows.length===0,'Private file hidden from outsider');
-await rejects(()=>rpc('cpw_record_file_access',[upload.id,'download']),'access denied');
-await as(reviewer);
-assert((await db.query('select * from storage.objects')).rows.length===1,'Reviewer can read authorised object');
-await rejects(()=>rpc('cpw_update_finding',[finding,2,JSON.stringify(input)]),'access denied');
-await rpc('cpw_review_evidence',[upload.id,2,'insufficient','The fifth identity is missing from the provided export.']);
-const protocol=(await db.query('select protocol from public.cpw_findings where id=$1',[finding])).rows[0].protocol;
-const body={reviewer:'Forged client name',publish:true,independent:true,independence_notes:'Not involved in the remediation or submission.',checks:protocol.checks.map(c=>({check_id:c.id,result:'unknown',reason:'Additional records are needed for my manual judgement.',evidence_ids:[upload.id],source_location:'JSON identities'})),recommendation:'Not closure ready',recommendation_reason:'I found incomplete scope during manual inspection.',next_status:'changes_requested',clarification_request:'Please submit the missing identity and its permissions.'};
-const reviewId=await rpc('cpw_save_review',[finding,3,JSON.stringify(body)]);
-const reviewRow=(await db.query('select * from public.cpw_reviews where id=$1',[reviewId])).rows[0];
-assert(reviewRow.reviewer_id===reviewer,'Reviewer identity server-owned');
-assert(reviewRow.reviewer_name!=='Forged client name','Client reviewer name ignored');
-assert(reviewRow.data.recommendation==='Not closure ready','Manual recommendation preserved');
-assert(reviewRow.data.checks.every(c=>c.result==='unknown'),'Check results not calculated');
-await rejects(()=>rpc('cpw_save_review',[finding,2,JSON.stringify(body)]),'changed');
-await rejects(()=>db.query("update public.cpw_reviews set data='{}' where id=$1",[reviewId]),'permission denied');
-const bad=structuredClone(body);bad.checks[0].evidence_ids=[crypto.randomUUID()];
-await rejects(()=>rpc('cpw_save_review',[finding,3,JSON.stringify(bad)]),'unavailable');
-await as(admin); await rpc('cpw_update_finding',[finding,3,JSON.stringify({...input,root_cause:'Updated cause'})]);
-const snapshot=(await db.query('select data,finding_revision from public.cpw_reviews where id=$1',[reviewId])).rows[0];
-assert(snapshot.finding_revision===3,'Historical review basis immutable');
-assert(snapshot.data.finding_snapshot.root_cause===input.root_cause,'Historical details snapshot preserved');
-await db.exec('reset role');
-await db.exec(await fs.readFile(new URL('../../../supabase/migrations/20261106000100_manual_review_workspace.sql', import.meta.url), 'utf8'));
+await rpc('cpw_bootstrap');
+assert(
+  (await db.query('select * from public.cpw_findings')).rows.length === 0,
+  'Cross-tenant rows hidden',
+);
+await rejects(
+  () => rpc('cpw_update_finding', [finding, 1, JSON.stringify(input)]),
+  'access denied',
+);
+await rejects(
+  () => rpc('cpw_add_member', [org, 'outsider@example.test', 'admin']),
+  'access denied',
+);
 await as(admin);
-assert((await db.query('select id from public.cpw_reviews where id=$1',[reviewId])).rows.length===1,'Rerun preserves records');
+const file = {
+  filename: 'policy.json',
+  mime: 'application/json',
+  size: 17,
+  sha256: 'a'.repeat(64),
+};
+const meta = {
+  evidence_type: 'Policy export',
+  source_system: 'Application',
+  source_account: 'Redacted',
+  covered_resources: 'A,B,C,D',
+  description: 'Submitted for manual review.',
+};
+const upload = await rpc('cpw_begin_upload', [
+  finding,
+  1,
+  JSON.stringify(file),
+  JSON.stringify(meta),
+]);
+await db.query(
+  "insert into storage.objects(bucket_id,name,metadata) values('closureproof-workspace-evidence',$1,$2)",
+  [upload.path, JSON.stringify({ size: 17, mimetype: 'application/json' })],
+);
+await rpc('cpw_finalize_upload', [upload.id, 1]);
+assert(
+  (await db.query('select revision from public.cpw_findings where id=$1', [finding])).rows[0]
+    .revision === 2,
+  'Upload updates revision',
+);
+await rejects(
+  () =>
+    db.query('delete from storage.objects where name=$1 returning id', [upload.path]).then((r) => {
+      if (!r.rows.length) throw Error('ready object protected');
+    }),
+  'protected',
+);
+await as(outsider);
+assert(
+  (await db.query('select * from storage.objects')).rows.length === 0,
+  'Private file hidden from outsider',
+);
+await rejects(() => rpc('cpw_record_file_access', [upload.id, 'download']), 'access denied');
+await as(reviewer);
+assert(
+  (await db.query('select * from storage.objects')).rows.length === 1,
+  'Reviewer can read authorised object',
+);
+await rejects(
+  () => rpc('cpw_update_finding', [finding, 2, JSON.stringify(input)]),
+  'access denied',
+);
+await rpc('cpw_review_evidence', [
+  upload.id,
+  2,
+  'insufficient',
+  'The fifth identity is missing from the provided export.',
+]);
+const protocol = (await db.query('select protocol from public.cpw_findings where id=$1', [finding]))
+  .rows[0].protocol;
+const body = {
+  reviewer: 'Forged client name',
+  publish: true,
+  independent: true,
+  independence_notes: 'Not involved in the remediation or submission.',
+  checks: protocol.checks.map((c) => ({
+    check_id: c.id,
+    result: 'unknown',
+    reason: 'Additional records are needed for my manual judgement.',
+    evidence_ids: [upload.id],
+    source_location: 'JSON identities',
+  })),
+  recommendation: 'Not closure ready',
+  recommendation_reason: 'I found incomplete scope during manual inspection.',
+  next_status: 'changes_requested',
+  clarification_request: 'Please submit the missing identity and its permissions.',
+};
+const reviewId = await rpc('cpw_save_review', [finding, 3, JSON.stringify(body)]);
+const reviewRow = (await db.query('select * from public.cpw_reviews where id=$1', [reviewId]))
+  .rows[0];
+assert(reviewRow.reviewer_id === reviewer, 'Reviewer identity server-owned');
+assert(reviewRow.reviewer_name !== 'Forged client name', 'Client reviewer name ignored');
+assert(reviewRow.data.recommendation === 'Not closure ready', 'Manual recommendation preserved');
+assert(
+  reviewRow.data.checks.every((c) => c.result === 'unknown'),
+  'Check results not calculated',
+);
+await rejects(() => rpc('cpw_save_review', [finding, 2, JSON.stringify(body)]), 'changed');
+await rejects(
+  () => db.query("update public.cpw_reviews set data='{}' where id=$1", [reviewId]),
+  'permission denied',
+);
+const bad = structuredClone(body);
+bad.checks[0].evidence_ids = [crypto.randomUUID()];
+await rejects(() => rpc('cpw_save_review', [finding, 3, JSON.stringify(bad)]), 'unavailable');
+await as(admin);
+await rpc('cpw_update_finding', [
+  finding,
+  3,
+  JSON.stringify({ ...input, root_cause: 'Updated cause' }),
+]);
+const snapshot = (
+  await db.query('select data,finding_revision from public.cpw_reviews where id=$1', [reviewId])
+).rows[0];
+assert(snapshot.finding_revision === 3, 'Historical review basis immutable');
+assert(
+  snapshot.data.finding_snapshot.root_cause === input.root_cause,
+  'Historical details snapshot preserved',
+);
+await db.exec('reset role');
+await db.exec(
+  await fs.readFile(
+    new URL(
+      '../../../supabase/migrations/20261106000100_manual_review_workspace.sql',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
+await as(admin);
+assert(
+  (await db.query('select id from public.cpw_reviews where id=$1', [reviewId])).rows.length === 1,
+  'Rerun preserves records',
+);
 await db.exec('reset role; set role anon;');
-await rejects(()=>rpc('cpw_bootstrap'),'permission denied');
-await rejects(()=>db.query('select * from public.cpw_findings'),'permission denied');
+await rejects(() => rpc('cpw_bootstrap'), 'permission denied');
+await rejects(() => db.query('select * from public.cpw_findings'), 'permission denied');
 await db.close();
 console.log(`PASS: migration executed; ${checks} PostgreSQL/RLS/RPC/storage-policy assertions.`);

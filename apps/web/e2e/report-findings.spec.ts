@@ -1,105 +1,246 @@
-import {test,expect} from '@playwright/test';
-const backend='http://127.0.0.1:54330';
-test('multiple findings retain independent forms and evidence while switching and can both be submitted',async({page,request})=>{
- const seeded=await request.post(backend+'/rest/v1/rpc/cpp_test_ai_multi_report',{data:{}});expect(seeded.ok()).toBeTruthy();const run=await seeded.json();
- await page.route('**/api/document-analysis/'+run.id,async route=>{const rows=await(await request.get(backend+'/rest/v1/cpp_findings')).json();const submissions=rows.filter((row:any)=>row.details.source_report?.run_id===run.id).map((row:any)=>({draft_index:row.details.source_report.draft_index,finding_id:row.id}));return route.fulfill({json:{...run,submissions}});});
- await page.route('**/api/document-analysis',route=>route.fulfill({json:{run:{...run,status:'pending',result:null},upload:{path:'ai-sources/fixture/original.pdf',token:'test-signed-token'}}}));
- await page.route('**/api/document-analysis/'+run.id+'/process',route=>route.fulfill({json:run}));
- await page.route('**/storage/v1/object/upload/sign/**',route=>route.fulfill({json:{Key:'ai-sources/fixture/original.pdf',Id:run.id}}));
- await page.goto('/app/submission');
- await page.getByRole('button',{name:'Upload audit report',exact:true}).click();
- await page.getByLabel('Audit report file',{exact:true}).setInputFiles({name:run.filename,mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7 synthetic report')});
- await page.getByRole('button',{name:'Extract draft findings',exact:true}).click();
- const reviewDrafts=page.getByRole('link',{name:'Review draft findings',exact:true});
- await expect(reviewDrafts).toHaveCount(1);
- await reviewDrafts.click();
- await expect(page.getByText('0 of 2 findings saved',{exact:true})).toBeVisible();
- const form=page.locator('[data-report-draft]:visible');
- async function fill(category:string,control:string,title:string,evidence:string){
-  await form.getByLabel('Finding title',{exact:true}).fill(title);await form.getByLabel('Finding category',{exact:true}).selectOption(category);await form.getByRole('checkbox',{name:new RegExp('^'+control.replaceAll('.','\\.')+' ·')}).check();
-  for(const [label,value]of [['Remediation owner','IT Operations'],['Source account / environment reference','SIM-'+category],['Affected systems / environment','Production'],['Affected identities and resource references',category+' resources'],['Draft confirmed by','Submitter Casey']])await form.getByLabel(label,{exact:true}).fill(value);
-  await form.getByLabel('Severity',{exact:true}).selectOption('High');await form.getByRole('checkbox',{name:/I checked the audit report/}).check();
-  await page.getByRole('button',{name:'Add evidence',exact:true}).click();await form.getByLabel('Evidence file to add',{exact:true}).setInputFiles({name:evidence,mimeType:'text/plain',buffer:Buffer.from('Synthetic supporting evidence specific to '+category)});
-  await form.getByLabel('Evidence type',{exact:true}).fill(category+' remediation');await form.getByLabel('Source system',{exact:true}).fill('Synthetic '+category);await form.getByLabel('Evidence description',{exact:true}).fill('Independent evidence attachment for '+category+' finding.');await page.getByRole('button',{name:'Add to evidence list',exact:true}).click();await expect(page.getByRole('heading',{name:evidence,exact:true})).toBeVisible();
- }
- await fill('access','A.5.18','Access finding with retained edits','access-remediation.txt');
- await page.getByRole('button',{name:'Finding 2',exact:true}).click();
- await expect(form.getByLabel('Finding title',{exact:true})).toHaveValue('Backup restoration test omitted a workload');
- await fill('backup','A.8.13','Backup finding with retained edits','backup-remediation.txt');
- await page.getByRole('button',{name:'Finding 1',exact:true}).click();
- await expect(form.getByLabel('Finding title',{exact:true})).toHaveValue('Access finding with retained edits');await expect(form.getByLabel('Finding category',{exact:true})).toHaveValue('access');await expect(page.getByRole('heading',{name:'access-remediation.txt',exact:true})).toBeVisible();await expect(page.getByRole('heading',{name:'backup-remediation.txt',exact:true})).toBeHidden();
- await form.getByRole('button',{name:'Save and continue',exact:true}).click();await expect(page.getByText('1 of 2 findings saved',{exact:true})).toBeVisible();
- await expect(page.getByRole('heading',{name:'Submission sent for review',exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Finding title',{exact:true})).toHaveValue('Backup finding with retained edits');await expect(form.getByLabel('Finding category',{exact:true})).toHaveValue('backup');await expect(page.getByRole('heading',{name:'backup-remediation.txt',exact:true})).toBeVisible();
- await form.getByRole('button',{name:'Save finding',exact:true}).click();await expect(page.getByText('2 of 2 findings saved',{exact:true})).toBeVisible();
- await expect(page.getByRole('heading',{name:'Audit submitted',exact:true})).toHaveCount(0);
- // A missing evidence response must block final confirmation, even though the
- // local progress counter says both findings were saved. No live rows are changed.
- const evidenceReads='**/rest/v1/cpp_evidence?**';
- await page.route(evidenceReads,route=>route.fulfill({json:[]}));
- await page.getByRole('button',{name:'Complete submission',exact:true}).click();
- await expect(page.locator('main').getByRole('alert')).toContainText('Add supporting evidence');
- await expect(page.getByRole('heading',{name:'Audit submitted',exact:true})).toHaveCount(0);
- await page.unroute(evidenceReads);
- await page.getByRole('button',{name:'Complete submission',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Audit submitted',exact:true})).toBeVisible();
- await expect(page.getByRole('status')).toContainText('Our review team will assess your submission and get back to you');
- await expect(page).toHaveURL(/\/app$/,{timeout:10000});
- await page.goto('/app/submission/report/'+run.id);
-await expect(page.getByRole('link',{name:'Open finding and evidence',exact:true})).toHaveCount(2);
- const all=await(await request.get(backend+'/rest/v1/cpp_findings')).json();const findings=all.filter((row:any)=>row.details.source_report?.run_id===run.id);expect(findings).toHaveLength(2);expect(new Set(findings.map((row:any)=>row.details.source_report.draft_index)).size).toBe(2);
- expect(new Set(findings.map((row:any)=>row.submission_reference))).toEqual(new Set([run.submission_reference]));
- expect(new Set(findings.map((row:any)=>row.finding_reference)).size).toBe(2);
- for(const finding of findings){const files=await(await request.get(backend+'/rest/v1/cpp_evidence?finding_id=eq.'+finding.id+'&upload_state=eq.ready')).json();expect(files).toHaveLength(1);expect(files[0].filename).toBe(finding.details.protocol_code==='access'?'access-remediation.txt':'backup-remediation.txt');}
- await page.getByRole('link',{name:'Open finding and evidence',exact:true}).first().click();await page.getByRole('link',{name:'Back to report findings',exact:true}).click();await expect(page.getByText('2 of 2 findings saved',{exact:true})).toBeVisible();
- await page.goto('/app/evidence');
- await page.getByLabel('Search submissions',{exact:true}).fill(run.id);
- const submission=page.getByRole('button',{name:'View evidence for '+run.filename,exact:true});
- await expect(submission).toHaveCount(1);
- await expect(submission).toContainText(run.submission_reference);
- expect(run.submission_reference).toMatch(/^CP-SUB-\d{4}-\d{6,}$/);
- for(const label of ['Submission ID','Date submitted','Remediation owner','Controls','Environment','Finding status','Report confirmed by'])await expect(submission).toContainText(label);
- await expect(submission).toContainText('IT Operations');
- await expect(submission).toContainText('Submitter Casey');
- await expect(submission).toContainText('2 finding(s) · 2 evidence file(s)');
- await expect(page.getByRole('heading',{name:'access-remediation.txt · v1',exact:true})).toHaveCount(0);
- await submission.click();
- const access=page.getByRole('region',{name:'Evidence for Access finding with retained edits',exact:true});
- const backup=page.getByRole('region',{name:'Evidence for Backup finding with retained edits',exact:true});
- await expect(access.getByRole('heading',{name:'access-remediation.txt · v1',exact:true})).toBeVisible();
- await expect(access).toContainText('Evidence ID: CP-EVD-');
- await expect(access).toContainText('Finding ID: CP-FND-');
- await expect(access.getByRole('heading',{name:'backup-remediation.txt · v1',exact:true})).toHaveCount(0);
- await expect(backup.getByRole('heading',{name:'backup-remediation.txt · v1',exact:true})).toBeVisible();
- await page.reload();
- await expect(page.getByRole('heading',{name:run.filename,exact:true})).toBeVisible();
- await page.getByRole('button',{name:'Back to submissions',exact:true}).click();
- await expect(page.getByLabel('Search submissions',{exact:true})).toBeVisible();
+import { test, expect } from '@playwright/test';
+const backend = 'http://127.0.0.1:54330';
+test('multiple findings retain independent forms and evidence while switching and can both be submitted', async ({
+  page,
+  request,
+}) => {
+  const seeded = await request.post(backend + '/rest/v1/rpc/cpp_test_ai_multi_report', {
+    data: {},
+  });
+  expect(seeded.ok()).toBeTruthy();
+  const run = await seeded.json();
+  await page.route('**/api/document-analysis/' + run.id, async (route) => {
+    const rows = await (await request.get(backend + '/rest/v1/cpp_findings')).json();
+    const submissions = rows
+      .filter((row: any) => row.details.source_report?.run_id === run.id)
+      .map((row: any) => ({
+        draft_index: row.details.source_report.draft_index,
+        finding_id: row.id,
+      }));
+    return route.fulfill({ json: { ...run, submissions } });
+  });
+  await page.route('**/api/document-analysis', (route) =>
+    route.fulfill({
+      json: {
+        run: { ...run, status: 'pending', result: null },
+        upload: { path: 'ai-sources/fixture/original.pdf', token: 'test-signed-token' },
+      },
+    }),
+  );
+  await page.route('**/api/document-analysis/' + run.id + '/process', (route) =>
+    route.fulfill({ json: run }),
+  );
+  await page.route('**/storage/v1/object/upload/sign/**', (route) =>
+    route.fulfill({ json: { Key: 'ai-sources/fixture/original.pdf', Id: run.id } }),
+  );
+  await page.goto('/app/submission');
+  await page.getByRole('button', { name: 'Upload audit report', exact: true }).click();
+  await page.getByLabel('Audit report file', { exact: true }).setInputFiles({
+    name: run.filename,
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.7 synthetic report'),
+  });
+  await page.getByRole('button', { name: 'Extract draft findings', exact: true }).click();
+  const reviewDrafts = page.getByRole('link', { name: 'Review draft findings', exact: true });
+  await expect(reviewDrafts).toHaveCount(1);
+  await reviewDrafts.click();
+  await expect(page.getByText('0 of 2 findings saved', { exact: true })).toBeVisible();
+  const form = page.locator('[data-report-draft]:visible');
+  async function fill(category: string, control: string, title: string, evidence: string) {
+    await form.getByLabel('Finding title', { exact: true }).fill(title);
+    await form.getByLabel('Finding category', { exact: true }).selectOption(category);
+    await form
+      .getByRole('checkbox', { name: new RegExp('^' + control.replaceAll('.', '\\.') + ' ·') })
+      .check();
+    for (const [label, value] of [
+      ['Remediation owner', 'IT Operations'],
+      ['Source account / environment reference', 'SIM-' + category],
+      ['Affected systems / environment', 'Production'],
+      ['Affected identities and resource references', category + ' resources'],
+      ['Draft confirmed by', 'Submitter Casey'],
+    ])
+      await form.getByLabel(label, { exact: true }).fill(value);
+    await form.getByLabel('Severity', { exact: true }).selectOption('High');
+    await form.getByRole('checkbox', { name: /I checked the audit report/ }).check();
+    await page.getByRole('button', { name: 'Add evidence', exact: true }).click();
+    await form.getByLabel('Evidence file to add', { exact: true }).setInputFiles({
+      name: evidence,
+      mimeType: 'text/plain',
+      buffer: Buffer.from('Synthetic supporting evidence specific to ' + category),
+    });
+    await form.getByLabel('Evidence type', { exact: true }).fill(category + ' remediation');
+    await form.getByLabel('Source system', { exact: true }).fill('Synthetic ' + category);
+    await form
+      .getByLabel('Evidence description', { exact: true })
+      .fill('Independent evidence attachment for ' + category + ' finding.');
+    await page.getByRole('button', { name: 'Add to evidence list', exact: true }).click();
+    await expect(page.getByRole('heading', { name: evidence, exact: true })).toBeVisible();
+  }
+  await fill('access', 'A.5.18', 'Access finding with retained edits', 'access-remediation.txt');
+  await page.getByRole('button', { name: 'Finding 2', exact: true }).click();
+  await expect(form.getByLabel('Finding title', { exact: true })).toHaveValue(
+    'Backup restoration test omitted a workload',
+  );
+  await fill('backup', 'A.8.13', 'Backup finding with retained edits', 'backup-remediation.txt');
+  await page.getByRole('button', { name: 'Finding 1', exact: true }).click();
+  await expect(form.getByLabel('Finding title', { exact: true })).toHaveValue(
+    'Access finding with retained edits',
+  );
+  await expect(form.getByLabel('Finding category', { exact: true })).toHaveValue('access');
+  await expect(
+    page.getByRole('heading', { name: 'access-remediation.txt', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'backup-remediation.txt', exact: true }),
+  ).toBeHidden();
+  await form.getByRole('button', { name: 'Save and continue', exact: true }).click();
+  await expect(page.getByText('1 of 2 findings saved', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Submission sent for review', exact: true }),
+  ).toHaveCount(0);
+  await expect(form.getByLabel('Finding title', { exact: true })).toHaveValue(
+    'Backup finding with retained edits',
+  );
+  await expect(form.getByLabel('Finding category', { exact: true })).toHaveValue('backup');
+  await expect(
+    page.getByRole('heading', { name: 'backup-remediation.txt', exact: true }),
+  ).toBeVisible();
+  await form.getByRole('button', { name: 'Save finding', exact: true }).click();
+  await expect(page.getByText('2 of 2 findings saved', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Audit submitted', exact: true })).toHaveCount(0);
+  // A missing evidence response must block final confirmation, even though the
+  // local progress counter says both findings were saved. No live rows are changed.
+  const evidenceReads = '**/rest/v1/cpp_evidence?**';
+  await page.route(evidenceReads, (route) => route.fulfill({ json: [] }));
+  await page.getByRole('button', { name: 'Complete submission', exact: true }).click();
+  await expect(page.locator('main').getByRole('alert')).toContainText('Add supporting evidence');
+  await expect(page.getByRole('heading', { name: 'Audit submitted', exact: true })).toHaveCount(0);
+  await page.unroute(evidenceReads);
+  await page.getByRole('button', { name: 'Complete submission', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Audit submitted', exact: true })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText(
+    'Our review team will assess your submission and get back to you',
+  );
+  await expect(page).toHaveURL(/\/app$/, { timeout: 10000 });
+  await page.goto('/app/submission/report/' + run.id);
+  await expect(
+    page.getByRole('link', { name: 'Open finding and evidence', exact: true }),
+  ).toHaveCount(2);
+  const all = await (await request.get(backend + '/rest/v1/cpp_findings')).json();
+  const findings = all.filter((row: any) => row.details.source_report?.run_id === run.id);
+  expect(findings).toHaveLength(2);
+  expect(new Set(findings.map((row: any) => row.details.source_report.draft_index)).size).toBe(2);
+  expect(new Set(findings.map((row: any) => row.submission_reference))).toEqual(
+    new Set([run.submission_reference]),
+  );
+  expect(new Set(findings.map((row: any) => row.finding_reference)).size).toBe(2);
+  for (const finding of findings) {
+    const files = await (
+      await request.get(
+        backend + '/rest/v1/cpp_evidence?finding_id=eq.' + finding.id + '&upload_state=eq.ready',
+      )
+    ).json();
+    expect(files).toHaveLength(1);
+    expect(files[0].filename).toBe(
+      finding.details.protocol_code === 'access'
+        ? 'access-remediation.txt'
+        : 'backup-remediation.txt',
+    );
+  }
+  await page.getByRole('link', { name: 'Open finding and evidence', exact: true }).first().click();
+  await page.getByRole('link', { name: 'Back to report findings', exact: true }).click();
+  await expect(page.getByText('2 of 2 findings saved', { exact: true })).toBeVisible();
+  await page.goto('/app/evidence');
+  await page.getByLabel('Search submissions', { exact: true }).fill(run.id);
+  const submission = page.getByRole('button', {
+    name: 'View evidence for ' + run.filename,
+    exact: true,
+  });
+  await expect(submission).toHaveCount(1);
+  await expect(submission).toContainText(run.submission_reference);
+  expect(run.submission_reference).toMatch(/^CP-SUB-\d{4}-\d{6,}$/);
+  for (const label of [
+    'Submission ID',
+    'Date submitted',
+    'Remediation owner',
+    'Controls',
+    'Environment',
+    'Finding status',
+    'Report confirmed by',
+  ])
+    await expect(submission).toContainText(label);
+  await expect(submission).toContainText('IT Operations');
+  await expect(submission).toContainText('Submitter Casey');
+  await expect(submission).toContainText('2 finding(s) · 2 evidence file(s)');
+  await expect(
+    page.getByRole('heading', { name: 'access-remediation.txt · v1', exact: true }),
+  ).toHaveCount(0);
+  await submission.click();
+  const access = page.getByRole('region', {
+    name: 'Evidence for Access finding with retained edits',
+    exact: true,
+  });
+  const backup = page.getByRole('region', {
+    name: 'Evidence for Backup finding with retained edits',
+    exact: true,
+  });
+  await expect(
+    access.getByRole('heading', { name: 'access-remediation.txt · v1', exact: true }),
+  ).toBeVisible();
+  await expect(access).toContainText('Evidence ID: CP-EVD-');
+  await expect(access).toContainText('Finding ID: CP-FND-');
+  await expect(
+    access.getByRole('heading', { name: 'backup-remediation.txt · v1', exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    backup.getByRole('heading', { name: 'backup-remediation.txt · v1', exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: run.filename, exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Back to submissions', exact: true }).click();
+  await expect(page.getByLabel('Search submissions', { exact: true })).toBeVisible();
 
- await page.goto('/app/findings');
- await page.getByLabel('Search findings',{exact:true}).fill(run.id);
- const findingsReportCard=page.getByRole('button',{name:'View findings for '+run.filename,exact:true});
- await expect(findingsReportCard).toContainText('2 finding(s) · 2 evidence file(s)');
- await findingsReportCard.click();
- await expect(page.getByText('Your submission',{exact:true})).toBeVisible();
- await expect(page.getByText('Submission reviews',{exact:true})).toHaveCount(0);
- await expect(page.getByRole('link',{name:'Open review',exact:true})).toHaveCount(0);
- await expect(page.getByRole('link',{name:/Access finding with retained edits/})).toBeVisible();
- await expect(page.getByRole('link',{name:/Backup finding with retained edits/})).toBeVisible();
- await page.goto('/app/reviews');
- await page.getByLabel('Search findings',{exact:true}).fill(run.id);
- const report=page.getByRole('button',{name:'View findings for '+run.filename,exact:true});
- await expect(report).toHaveCount(1);
- await expect(report).toContainText('2 finding(s) · 2 evidence file(s)');
- await expect(page.getByRole('link',{name:/Access finding with retained edits/})).toHaveCount(0);
- await report.click();
- await expect(page.getByRole('link',{name:'Edit review',exact:true})).toHaveCount(0);
- const review=page.getByRole('link',{name:/Access finding with retained edits/});
- const accessFinding=findings.find((finding:any)=>finding.details.protocol_code==='access');
- await expect(review).toHaveAttribute('href','/app/reviews/'+accessFinding.id);
- await expect(page.getByRole('link',{name:/Backup finding with retained edits/})).toBeVisible();
- await review.click();
- await expect(page.getByRole('heading',{name:'Inspect. Record. Explain.',exact:true})).toBeVisible();
- await expect(page.getByRole('heading',{name:'Upload submitted evidence',exact:true})).toHaveCount(0);
-
+  await page.goto('/app/findings');
+  await page.getByLabel('Search findings', { exact: true }).fill(run.id);
+  const findingsReportCard = page.getByRole('button', {
+    name: 'View findings for ' + run.filename,
+    exact: true,
+  });
+  await expect(findingsReportCard).toContainText('2 finding(s) · 2 evidence file(s)');
+  await findingsReportCard.click();
+  await expect(page.getByText('Your submission', { exact: true })).toBeVisible();
+  await expect(page.getByText('Submission reviews', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Open review', exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole('link', { name: /Access finding with retained edits/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: /Backup finding with retained edits/ }),
+  ).toBeVisible();
+  await page.goto('/app/reviews');
+  await page.getByLabel('Search findings', { exact: true }).fill(run.id);
+  const report = page.getByRole('button', {
+    name: 'View findings for ' + run.filename,
+    exact: true,
+  });
+  await expect(report).toHaveCount(1);
+  await expect(report).toContainText('2 finding(s) · 2 evidence file(s)');
+  await expect(page.getByRole('link', { name: /Access finding with retained edits/ })).toHaveCount(
+    0,
+  );
+  await report.click();
+  await expect(page.getByRole('link', { name: 'Edit review', exact: true })).toHaveCount(0);
+  const review = page.getByRole('link', { name: /Access finding with retained edits/ });
+  const accessFinding = findings.find((finding: any) => finding.details.protocol_code === 'access');
+  await expect(review).toHaveAttribute('href', '/app/reviews/' + accessFinding.id);
+  await expect(
+    page.getByRole('link', { name: /Backup finding with retained edits/ }),
+  ).toBeVisible();
+  await review.click();
+  await expect(
+    page.getByRole('heading', { name: 'Inspect. Record. Explain.', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Upload submitted evidence', exact: true }),
+  ).toHaveCount(0);
 });

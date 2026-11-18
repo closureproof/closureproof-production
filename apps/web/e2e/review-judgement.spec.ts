@@ -1,44 +1,102 @@
-import { test,expect } from '@playwright/test';
-test('judgement shows only relevant retest fields and records explicit exception acceptance details',async({page,request})=>{
- const response=await request.post('http://127.0.0.1:54330/rest/v1/rpc/cpp_create_finding',{data:{p_org:'00000000-0000-4000-8000-000000000001',p_details:{title:'Conditional retest '+test.info().project.name,description:'Review the restore test and its supporting evidence.',owner:'IT Operations',severity:'Medium',protocol_code:'backup',account_reference:'Production',affected_systems:'Storage service',resources:'Backup set A',approved_baseline:'Approved recovery objective',root_cause:'Test not completed',corrective_action:'Run the restore test',recurrence_prevention:'Assign a test owner',implementation_date:null,deadline:null,control_reference:'A.8.13'}}});
- expect(response.ok()).toBeTruthy();const id=await response.json();
- await page.goto('/app/reviews/'+id);
- const form=page.locator('[data-review-form]');await form.getByRole('button',{name:'Next',exact:true}).click();
- await expect(form.getByRole('textbox')).toHaveCount(0);
- await expect(form.getByLabel('Population reconciliation and exclusions',{exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Exceptions, owners and compensating controls',{exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Operating period and cycle observations',{exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Retest method, result and limitations',{exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Recurrence-prevention judgement',{exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Retest status',{exact:true})).toHaveCount(0);
- await form.getByLabel('Is an independent retest needed?',{exact:true}).selectOption('Required');
- await form.getByLabel('Retest status',{exact:true}).selectOption('Planned');
- await expect(form.getByLabel('Required retest scope and method',{exact:true})).toBeVisible();
- await expect(form.getByLabel('Outstanding retest work',{exact:true})).toBeVisible();
- await expect(form.getByLabel('Retest performed by',{exact:true})).toHaveCount(0);
- await form.getByLabel('Retest status',{exact:true}).selectOption('Completed');
- for(const label of ['Retest performed by','Retest date','Retest result and limitations','Tester independence and relationship','Retest evidence reference'])await expect(form.getByLabel(label,{exact:true})).toBeVisible();
- await expect(form.getByLabel('Outstanding retest work',{exact:true})).toHaveCount(0);
- await form.getByLabel('Is an independent retest needed?',{exact:true}).selectOption('Not required');
- await expect(form.getByLabel('Reason for the retest decision',{exact:true})).toBeVisible();
- await expect(form.getByLabel('Retest result and limitations',{exact:true})).toHaveCount(0);
- await form.getByLabel('Is an independent retest needed?',{exact:true}).selectOption('Not yet established');
- await expect(form.getByLabel('Reason for the retest decision',{exact:true})).toBeVisible();
- await expect(form.getByLabel('Retest status',{exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Retest date',{exact:true})).toHaveCount(0);
- await expect(form.getByLabel('Exception closure impact',{exact:true})).toHaveCount(0);
- await form.getByLabel('Are there exceptions?',{exact:true}).selectOption('Exceptions identified');
- await form.getByRole('button',{name:'Add exception',exact:true}).click();
- await expect(form.getByLabel('Exception closure impact',{exact:true})).toBeVisible();
- await form.getByLabel('Exception 1: disposition',{exact:true}).selectOption('accepted');
- for(const label of ['acceptance authority','acceptance date','acceptance reference'])await expect(form.getByLabel('Exception 1: '+label,{exact:true})).toBeVisible();
- await form.getByLabel('Exception 1: disposition',{exact:true}).selectOption('mitigated');
- await expect(form.getByLabel('Exception 1: compensating controls',{exact:true})).toBeVisible();
- await expect(form.getByLabel('Exception 1: acceptance authority',{exact:true})).toHaveCount(0);
- await form.getByLabel('Is population coverage review needed?',{exact:true}).selectOption('Required');
- await form.getByLabel('Coverage approach',{exact:true}).selectOption('Sample');
- await expect(form.getByLabel('Sampling method and limitations',{exact:true})).toBeVisible();
- await form.getByLabel('Coverage approach',{exact:true}).selectOption('Full population');
- await expect(form.getByLabel('Sampling method and limitations',{exact:true})).toHaveCount(0);
- expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+import { test, expect } from '@playwright/test';
+test('judgement shows only relevant retest fields and records explicit exception acceptance details', async ({
+  page,
+  request,
+}) => {
+  const response = await request.post('http://127.0.0.1:54330/rest/v1/rpc/cpp_create_finding', {
+    data: {
+      p_org: '00000000-0000-4000-8000-000000000001',
+      p_details: {
+        title: 'Conditional retest ' + test.info().project.name,
+        description: 'Review the restore test and its supporting evidence.',
+        owner: 'IT Operations',
+        severity: 'Medium',
+        protocol_code: 'backup',
+        account_reference: 'Production',
+        affected_systems: 'Storage service',
+        resources: 'Backup set A',
+        approved_baseline: 'Approved recovery objective',
+        root_cause: 'Test not completed',
+        corrective_action: 'Run the restore test',
+        recurrence_prevention: 'Assign a test owner',
+        implementation_date: null,
+        deadline: null,
+        control_reference: 'A.8.13',
+      },
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const id = await response.json();
+  await page.goto('/app/reviews/' + id);
+  const form = page.locator('[data-review-form]');
+  await form.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(form.getByRole('textbox')).toHaveCount(0);
+  await expect(
+    form.getByLabel('Population reconciliation and exclusions', { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    form.getByLabel('Exceptions, owners and compensating controls', { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    form.getByLabel('Operating period and cycle observations', { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    form.getByLabel('Retest method, result and limitations', { exact: true }),
+  ).toHaveCount(0);
+  await expect(form.getByLabel('Recurrence-prevention judgement', { exact: true })).toHaveCount(0);
+  await expect(form.getByLabel('Retest status', { exact: true })).toHaveCount(0);
+  await form
+    .getByLabel('Is an independent retest needed?', { exact: true })
+    .selectOption('Required');
+  await form.getByLabel('Retest status', { exact: true }).selectOption('Planned');
+  await expect(form.getByLabel('Required retest scope and method', { exact: true })).toBeVisible();
+  await expect(form.getByLabel('Outstanding retest work', { exact: true })).toBeVisible();
+  await expect(form.getByLabel('Retest performed by', { exact: true })).toHaveCount(0);
+  await form.getByLabel('Retest status', { exact: true }).selectOption('Completed');
+  for (const label of [
+    'Retest performed by',
+    'Retest date',
+    'Retest result and limitations',
+    'Tester independence and relationship',
+    'Retest evidence reference',
+  ])
+    await expect(form.getByLabel(label, { exact: true })).toBeVisible();
+  await expect(form.getByLabel('Outstanding retest work', { exact: true })).toHaveCount(0);
+  await form
+    .getByLabel('Is an independent retest needed?', { exact: true })
+    .selectOption('Not required');
+  await expect(form.getByLabel('Reason for the retest decision', { exact: true })).toBeVisible();
+  await expect(form.getByLabel('Retest result and limitations', { exact: true })).toHaveCount(0);
+  await form
+    .getByLabel('Is an independent retest needed?', { exact: true })
+    .selectOption('Not yet established');
+  await expect(form.getByLabel('Reason for the retest decision', { exact: true })).toBeVisible();
+  await expect(form.getByLabel('Retest status', { exact: true })).toHaveCount(0);
+  await expect(form.getByLabel('Retest date', { exact: true })).toHaveCount(0);
+  await expect(form.getByLabel('Exception closure impact', { exact: true })).toHaveCount(0);
+  await form
+    .getByLabel('Are there exceptions?', { exact: true })
+    .selectOption('Exceptions identified');
+  await form.getByRole('button', { name: 'Add exception', exact: true }).click();
+  await expect(form.getByLabel('Exception closure impact', { exact: true })).toBeVisible();
+  await form.getByLabel('Exception 1: disposition', { exact: true }).selectOption('accepted');
+  for (const label of ['acceptance authority', 'acceptance date', 'acceptance reference'])
+    await expect(form.getByLabel('Exception 1: ' + label, { exact: true })).toBeVisible();
+  await form.getByLabel('Exception 1: disposition', { exact: true }).selectOption('mitigated');
+  await expect(
+    form.getByLabel('Exception 1: compensating controls', { exact: true }),
+  ).toBeVisible();
+  await expect(form.getByLabel('Exception 1: acceptance authority', { exact: true })).toHaveCount(
+    0,
+  );
+  await form
+    .getByLabel('Is population coverage review needed?', { exact: true })
+    .selectOption('Required');
+  await form.getByLabel('Coverage approach', { exact: true }).selectOption('Sample');
+  await expect(form.getByLabel('Sampling method and limitations', { exact: true })).toBeVisible();
+  await form.getByLabel('Coverage approach', { exact: true }).selectOption('Full population');
+  await expect(form.getByLabel('Sampling method and limitations', { exact: true })).toHaveCount(0);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+  ).toBeTruthy();
 });

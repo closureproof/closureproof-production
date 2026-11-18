@@ -1,7 +1,58 @@
-import {ArrowUpRight,Mail} from 'lucide-react';
-import {Link} from '../lib/navigation';
-import {CONTACT_EMAIL,CONTACT_HREF} from '../lib/public-contact';
-import {Brand,buttonClass} from './ui';
-export function PublicFooter(){
- return <footer className="bg-navy-deep text-white"><div className="mx-auto max-w-6xl px-5 sm:px-8"><div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.8fr_1fr] lg:gap-16 lg:py-16"><div className="min-w-0"><Brand light/><p className="mt-5 max-w-sm text-sm leading-7 text-white/75">Evidence-backed closure readiness for audit findings.</p><p className="mt-3 max-w-sm text-xs leading-6 text-white/55">Bring corrective actions, supporting evidence and review recommendations together.</p></div><nav aria-label="Footer navigation"><h2 className="text-sm font-semibold">Company</h2><ul className="mt-5 space-y-4 text-sm text-white/75"><li><Link to="/about" className="transition-colors hover:text-white">About ClosureProof</Link></li><li><a href={CONTACT_HREF} className="transition-colors hover:text-white">Contact us</a></li></ul></nav><div className="min-w-0"><h2 className="text-sm font-semibold">Talk to our team</h2><a href={CONTACT_HREF} className="mt-5 flex w-fit max-w-full items-start gap-2 text-sm text-white/80 transition-colors hover:text-white"><Mail size={16} className="mt-0.5 shrink-0" aria-hidden="true"/><span className="min-w-0 break-all">{CONTACT_EMAIL}</span></a><p className="mt-4 text-xs leading-6 text-white/60">Discuss your evidence review and audit finding closure process.</p><Link to="/request-demo" className={buttonClass+' mt-5'}>Request demo<ArrowUpRight size={16} aria-hidden="true"/></Link></div></div><div className="border-t border-white/15 py-6 text-xs leading-6 text-white/55">© {new Date().getUTCFullYear()} ClosureProof. All rights reserved.</div></div></footer>;
+import { ArrowUpRight, Mail } from 'lucide-react';
+import { Link } from '../lib/navigation';
+import { CONTACT_EMAIL, CONTACT_HREF } from '../lib/public-contact';
+import { Brand, buttonClass } from './ui';
+export function PublicFooter() {
+  return (
+    <footer className="bg-navy-deep text-white">
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.8fr_1fr] lg:gap-16 lg:py-16">
+          <div className="min-w-0">
+            <Brand light />
+            <p className="mt-5 max-w-sm text-sm leading-7 text-white/75">
+              Evidence-backed closure readiness for audit findings.
+            </p>
+            <p className="mt-3 max-w-sm text-xs leading-6 text-white/55">
+              Bring corrective actions, supporting evidence and review recommendations together.
+            </p>
+          </div>
+          <nav aria-label="Footer navigation">
+            <h2 className="text-sm font-semibold">Company</h2>
+            <ul className="mt-5 space-y-4 text-sm text-white/75">
+              <li>
+                <Link to="/about" className="transition-colors hover:text-white">
+                  About ClosureProof
+                </Link>
+              </li>
+              <li>
+                <a href={CONTACT_HREF} className="transition-colors hover:text-white">
+                  Contact us
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold">Talk to our team</h2>
+            <a
+              href={CONTACT_HREF}
+              className="mt-5 flex w-fit max-w-full items-start gap-2 text-sm text-white/80 transition-colors hover:text-white"
+            >
+              <Mail size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 break-all">{CONTACT_EMAIL}</span>
+            </a>
+            <p className="mt-4 text-xs leading-6 text-white/60">
+              Discuss your evidence review and audit finding closure process.
+            </p>
+            <Link to="/request-demo" className={buttonClass + ' mt-5'}>
+              Request demo
+              <ArrowUpRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+        <div className="border-t border-white/15 py-6 text-xs leading-6 text-white/55">
+          © {new Date().getUTCFullYear()} ClosureProof. All rights reserved.
+        </div>
+      </div>
+    </footer>
+  );
 }

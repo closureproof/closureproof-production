@@ -1,3 +1,5 @@
 'use client';
 import { ManualFindingDetail } from '../../../../screens/ManualReviewPages';
-export default function Page() { return <ManualFindingDetail />; }
+export default function Page() {
+  return <ManualFindingDetail />;
+}

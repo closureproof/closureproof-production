@@ -1,27 +1,199 @@
-import {test,expect,type APIRequestContext} from '@playwright/test';
-import {createHash} from 'node:crypto';
-import {assessmentMethods,newProtocolDraft} from '../../../packages/assessment-engine/src/protocol-catalogue';
-const backend='http://127.0.0.1:54330';
-async function rpc(request:APIRequestContext,name:string,data:Record<string,unknown>){const response=await request.post(backend+'/rest/v1/rpc/'+name,{data});const result=await response.json();expect(response.ok(),JSON.stringify(result)).toBeTruthy();return result;}
-for(const method of assessmentMethods.filter(method=>method.protocol.code!=='aws-iam'))test(method.protocol.code+' selects its own protocol, completes once and generates its report',async({page,request})=>{
- test.setTimeout(60000);const code=method.protocol.code;const note='Synthetic reviewer inspected the scoped original evidence and documented this assessment.';
- const id=await rpc(request,'cpp_create_finding',{p_org:'00000000-0000-4000-8000-000000000001',p_details:{title:method.protocol.title+' engine '+test.info().project.name,description:'A synthetic finding for category-specific rules and completion testing.',owner:'IT Operations',severity:'Medium',protocol_code:code,account_reference:'Synthetic source environment',affected_systems:'Production',resources:'In-scope resources',approved_baseline:'Approved organisational baseline',root_cause:'Control design weakness',corrective_action:'Implement the required correction',recurrence_prevention:'Assign ownership and monitor',implementation_date:null,deadline:null,control_reference:'SYNTHETIC-001'}});
- const bytes=Buffer.from('Synthetic supporting evidence for '+code);const hash=createHash('sha256').update(bytes).digest('hex');const upload=await rpc(request,'cpp_begin_upload',{p_finding:id,p_revision:1,p_file:{filename:code+'-evidence.txt',mime:'text/plain',size:bytes.length,sha256:hash},p_metadata:{evidence_type:'Corrective action record',source_system:'Synthetic environment',source_account:'Demo',covered_resources:'In-scope resources',description:note}});
- expect((await request.post(backend+'/storage/v1/object/closureproof-pilot-evidence/'+upload.path,{headers:{'Content-Type':'text/plain'},data:bytes})).ok()).toBeTruthy();expect((await request.post('/api/evidence/complete',{data:{id:upload.id,revision:1}})).ok()).toBeTruthy();
- const [finding]=await(await request.get(backend+'/rest/v1/cpp_findings?id=eq.'+id)).json();
- const checks=finding.protocol.checks.map((check:{id:string})=>({check_id:check.id,result:'pass',applicability:'yes',implementation_status:'implemented',reason:note,evidence_ids:[upload.id],source_location:'Synthetic evidence section 1'}));
- const draft=newProtocolDraft(code);for(const field of method.fields.filter(field=>field.type==='boolean'))draft.entries[field.id]={value:['operation_required','retest_required'].includes(field.id)?'false':'true',basis:note,evidenceIds:[upload.id],locator:'Synthetic evidence section 1'};
- await page.goto('/app/reviews/'+id);await page.getByRole('navigation',{name:'Review steps',exact:true}).getByRole('button',{name:/Gaps & exceptions/}).click();await page.getByLabel('Assessment method',{exact:true}).selectOption('rules');
- const domain=method.fields.find(field=>!assessmentMethods[0].fields.some(common=>common.id===field.id))!;await expect(page.getByLabel('Assessment: '+domain.label,{exact:true})).toBeVisible();
- const previewBody={findingId:id,revision:2,reviewer:'Reviewer Casey',draft,checks};
- const previewResponse=await request.post('/api/assessments/evaluate',{data:previewBody});const preview=await previewResponse.json();expect(previewResponse.ok(),JSON.stringify(preview)).toBeTruthy();expect(preview.evaluation.protocol.code).toBe(code);expect(preview.evaluation.recommendation).toBe('closure_ready');expect(preview.evaluation.checklistMapping.version).toBe('1.0-iso27001-'+code);
- const cross=await request.post('/api/assessments/evaluate',{data:{...previewBody,draft:{...draft,protocolCode:'aws-iam'}}});expect(cross.status()).toBe(400);
- const missing=structuredClone(previewBody);delete missing.draft.entries[domain.id];const incomplete=await(await request.post('/api/assessments/evaluate',{data:missing})).json();expect(incomplete.evaluation.recommendation).toBe('implemented_evidence_incomplete');
- const review={reviewer:'Reviewer Casey',reviewer_conclusion:note,scope_confirmed:true,scope_confirmation_notes:note,checks,closure_judgement:{version:'3.0-manual',scope_status:'Sufficient for this finding',scope_conclusion:note,required_evidence:note,cause_status:'Supported',root_cause_type:'Control design weakness',cause_assessment:note,action_cause_assessment:note,population_requirement:'Not required',population_requirement_reason:note,operation_requirement:'Not required',operation_requirement_reason:note,retest_requirement:'Not required',retest_requirement_reason:note,exceptions_status:'None identified',followup_status:'None required',limitations_status:'None identified',established_facts:note,closure_ready_acknowledged:true},recommendation:'Closure ready',recommendation_reason:note,exceptions_assessed:true,exception_entries:[],engine_draft:draft,engine_request:{draft,evaluationHash:preview.evaluationHash,disposition:'accept',overrideReason:'',overrideEvidenceIds:[]}};
- const completionBody={findingId:id,revision:2,review,requestId:crypto.randomUUID(),supersedes:null};
- const response=await request.post('/api/assessments/complete',{data:completionBody});const completed=await response.json();expect(response.ok(),JSON.stringify(completed)).toBeTruthy();expect((await(await request.post('/api/assessments/complete',{data:completionBody})).json()).assessmentId).toBe(completed.assessmentId);
- await page.reload();await expect(page.getByRole('button',{name:'Download report PDF',exact:true})).toBeVisible();
- const [assessment]=await(await request.get(backend+'/rest/v1/cpp_reviews?id=eq.'+completed.assessmentId)).json();expect(assessment.data.rules_assessment.protocol.code).toBe(code);expect(assessment.data.rules_assessment.input.facts[domain.id].value).toBe(true);expect(assessment.status).toBe('completed');
- const [report]=await(await request.get(backend+'/rest/v1/cpp_reports?assessment_id=eq.'+completed.assessmentId)).json();expect(report.template_version).toBe('1.5');expect(report.status).toBe('ready');
- const [after]=await(await request.get(backend+'/rest/v1/cpp_findings?id=eq.'+id)).json();expect(after.lifecycle).toBe('review_completed');
-});
+import { test, expect, type APIRequestContext } from '@playwright/test';
+import { createHash } from 'node:crypto';
+import {
+  assessmentMethods,
+  newProtocolDraft,
+} from '../../../packages/assessment-engine/src/protocol-catalogue';
+const backend = 'http://127.0.0.1:54330';
+async function rpc(request: APIRequestContext, name: string, data: Record<string, unknown>) {
+  const response = await request.post(backend + '/rest/v1/rpc/' + name, { data });
+  const result = await response.json();
+  expect(response.ok(), JSON.stringify(result)).toBeTruthy();
+  return result;
+}
+for (const method of assessmentMethods.filter((method) => method.protocol.code !== 'aws-iam'))
+  test(
+    method.protocol.code + ' selects its own protocol, completes once and generates its report',
+    async ({ page, request }) => {
+      test.setTimeout(60000);
+      const code = method.protocol.code;
+      const note =
+        'Synthetic reviewer inspected the scoped original evidence and documented this assessment.';
+      const id = await rpc(request, 'cpp_create_finding', {
+        p_org: '00000000-0000-4000-8000-000000000001',
+        p_details: {
+          title: method.protocol.title + ' engine ' + test.info().project.name,
+          description: 'A synthetic finding for category-specific rules and completion testing.',
+          owner: 'IT Operations',
+          severity: 'Medium',
+          protocol_code: code,
+          account_reference: 'Synthetic source environment',
+          affected_systems: 'Production',
+          resources: 'In-scope resources',
+          approved_baseline: 'Approved organisational baseline',
+          root_cause: 'Control design weakness',
+          corrective_action: 'Implement the required correction',
+          recurrence_prevention: 'Assign ownership and monitor',
+          implementation_date: null,
+          deadline: null,
+          control_reference: 'SYNTHETIC-001',
+        },
+      });
+      const bytes = Buffer.from('Synthetic supporting evidence for ' + code);
+      const hash = createHash('sha256').update(bytes).digest('hex');
+      const upload = await rpc(request, 'cpp_begin_upload', {
+        p_finding: id,
+        p_revision: 1,
+        p_file: {
+          filename: code + '-evidence.txt',
+          mime: 'text/plain',
+          size: bytes.length,
+          sha256: hash,
+        },
+        p_metadata: {
+          evidence_type: 'Corrective action record',
+          source_system: 'Synthetic environment',
+          source_account: 'Demo',
+          covered_resources: 'In-scope resources',
+          description: note,
+        },
+      });
+      expect(
+        (
+          await request.post(
+            backend + '/storage/v1/object/closureproof-pilot-evidence/' + upload.path,
+            { headers: { 'Content-Type': 'text/plain' }, data: bytes },
+          )
+        ).ok(),
+      ).toBeTruthy();
+      expect(
+        (
+          await request.post('/api/evidence/complete', { data: { id: upload.id, revision: 1 } })
+        ).ok(),
+      ).toBeTruthy();
+      const [finding] = await (
+        await request.get(backend + '/rest/v1/cpp_findings?id=eq.' + id)
+      ).json();
+      const checks = finding.protocol.checks.map((check: { id: string }) => ({
+        check_id: check.id,
+        result: 'pass',
+        applicability: 'yes',
+        implementation_status: 'implemented',
+        reason: note,
+        evidence_ids: [upload.id],
+        source_location: 'Synthetic evidence section 1',
+      }));
+      const draft = newProtocolDraft(code);
+      for (const field of method.fields.filter((field) => field.type === 'boolean'))
+        draft.entries[field.id] = {
+          value: ['operation_required', 'retest_required'].includes(field.id) ? 'false' : 'true',
+          basis: note,
+          evidenceIds: [upload.id],
+          locator: 'Synthetic evidence section 1',
+        };
+      await page.goto('/app/reviews/' + id);
+      await page
+        .getByRole('navigation', { name: 'Review steps', exact: true })
+        .getByRole('button', { name: /Gaps & exceptions/ })
+        .click();
+      await page.getByLabel('Assessment method', { exact: true }).selectOption('rules');
+      const domain = method.fields.find(
+        (field) => !assessmentMethods[0].fields.some((common) => common.id === field.id),
+      )!;
+      await expect(page.getByLabel('Assessment: ' + domain.label, { exact: true })).toBeVisible();
+      const previewBody = { findingId: id, revision: 2, reviewer: 'Reviewer Casey', draft, checks };
+      const previewResponse = await request.post('/api/assessments/evaluate', {
+        data: previewBody,
+      });
+      const preview = await previewResponse.json();
+      expect(previewResponse.ok(), JSON.stringify(preview)).toBeTruthy();
+      expect(preview.evaluation.protocol.code).toBe(code);
+      expect(preview.evaluation.recommendation).toBe('closure_ready');
+      expect(preview.evaluation.checklistMapping.version).toBe('1.0-iso27001-' + code);
+      const cross = await request.post('/api/assessments/evaluate', {
+        data: { ...previewBody, draft: { ...draft, protocolCode: 'aws-iam' } },
+      });
+      expect(cross.status()).toBe(400);
+      const missing = structuredClone(previewBody);
+      delete missing.draft.entries[domain.id];
+      const incomplete = await (
+        await request.post('/api/assessments/evaluate', { data: missing })
+      ).json();
+      expect(incomplete.evaluation.recommendation).toBe('implemented_evidence_incomplete');
+      const review = {
+        reviewer: 'Reviewer Casey',
+        reviewer_conclusion: note,
+        scope_confirmed: true,
+        scope_confirmation_notes: note,
+        checks,
+        closure_judgement: {
+          version: '3.0-manual',
+          scope_status: 'Sufficient for this finding',
+          scope_conclusion: note,
+          required_evidence: note,
+          cause_status: 'Supported',
+          root_cause_type: 'Control design weakness',
+          cause_assessment: note,
+          action_cause_assessment: note,
+          population_requirement: 'Not required',
+          population_requirement_reason: note,
+          operation_requirement: 'Not required',
+          operation_requirement_reason: note,
+          retest_requirement: 'Not required',
+          retest_requirement_reason: note,
+          exceptions_status: 'None identified',
+          followup_status: 'None required',
+          limitations_status: 'None identified',
+          established_facts: note,
+          closure_ready_acknowledged: true,
+        },
+        recommendation: 'Closure ready',
+        recommendation_reason: note,
+        exceptions_assessed: true,
+        exception_entries: [],
+        engine_draft: draft,
+        engine_request: {
+          draft,
+          evaluationHash: preview.evaluationHash,
+          disposition: 'accept',
+          overrideReason: '',
+          overrideEvidenceIds: [],
+        },
+      };
+      const completionBody = {
+        findingId: id,
+        revision: 2,
+        review,
+        requestId: crypto.randomUUID(),
+        supersedes: null,
+      };
+      const response = await request.post('/api/assessments/complete', { data: completionBody });
+      const completed = await response.json();
+      expect(response.ok(), JSON.stringify(completed)).toBeTruthy();
+      expect(
+        (await (await request.post('/api/assessments/complete', { data: completionBody })).json())
+          .assessmentId,
+      ).toBe(completed.assessmentId);
+      await page.reload();
+      await expect(
+        page.getByRole('button', { name: 'Download report PDF', exact: true }),
+      ).toBeVisible();
+      const [assessment] = await (
+        await request.get(backend + '/rest/v1/cpp_reviews?id=eq.' + completed.assessmentId)
+      ).json();
+      expect(assessment.data.rules_assessment.protocol.code).toBe(code);
+      expect(assessment.data.rules_assessment.input.facts[domain.id].value).toBe(true);
+      expect(assessment.status).toBe('completed');
+      const [report] = await (
+        await request.get(
+          backend + '/rest/v1/cpp_reports?assessment_id=eq.' + completed.assessmentId,
+        )
+      ).json();
+      expect(report.template_version).toBe('1.5');
+      expect(report.status).toBe('ready');
+      const [after] = await (
+        await request.get(backend + '/rest/v1/cpp_findings?id=eq.' + id)
+      ).json();
+      expect(after.lifecycle).toBe('review_completed');
+    },
+  );
